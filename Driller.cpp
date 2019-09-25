@@ -7,9 +7,19 @@
 #include <iomanip>
 #include "DrillingRecord.h"
 #include "ResizableArray.h"
+#include "Search.h"
+#include "Comparator.h"
+#include "DrillingRecordComparator.h"
+
+const std::string DUPLICATE_DATE = "DUPLICATE_DATE";
+const std::string DUPLICATE_TIMESTAMP = "DUPLICATE_TIMESTAMP";
+const std::string INVALID_DATA = "INVALID_DATA";
+const std::string VALID_RECORD = "VALID_RECORD";
+
 
 int main() {
 	ResizableArray<DrillingRecord>* drillingArray = new ResizableArray<DrillingRecord>();
+	ResizableArray<std::string>* timestamps = new ResizableArray<std::string>();
 	std::string filename = "";
 	std::string line = "";
 	unsigned int filecounter;
@@ -66,12 +76,26 @@ void readline(std::string line, unsigned int& counter)
 		}
 		columnCounter++;
 	}
-	drillingArray->add(currentRecord);
-	counter++;
+	if (checkrecord(drillingArray, currentRecord) == VALID_RECORD)
+	{
+		drillingArray->add(currentRecord);
+		counter++;
+	}
+}
+
+std::string checkrecord(ResizableArray<DrillingRecord>& drillingArray, DrillingRecord record)
+{
+	// check date using binary search
+	
+	// check timestamp using binary search
+
+	// check data validity
+
+	return "";
 }
 
 
-std::string line;
+	std::string line;
 	// line counter
 	unsigned int counter = 1;
 	// ignore header row
