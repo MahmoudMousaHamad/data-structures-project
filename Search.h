@@ -34,6 +34,6 @@ long binarySearch(const T& item, const ResizableArray<T>& array, const Comparato
             continue;
         }
     }
-    return mid + 1;
+    return (mid + 1) * -1;
 }
 #endif

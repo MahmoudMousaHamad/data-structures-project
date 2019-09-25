@@ -78,22 +78,28 @@ void readline(std::string line, unsigned int& counter)
 	}
 	if (checkrecord(drillingArray, currentRecord) == VALID_RECORD)
 	{
-		drillingArray->add(currentRecord);
+		insertrecord(array, currentRecord);
 		counter++;
 	}
 }
 
 std::string checkrecord(ResizableArray<DrillingRecord>& drillingArray, DrillingRecord record)
 {
-	// check date using binary search
+	// check date
 	
-	// check timestamp using binary search
+	// check timestamp
 
 	// check data validity
 
 	return "";
 }
 
+void insertrecord(ResizableArray<DrillingRecord>& drillingArray, DrillingRecord record)
+{
+	DrillingRecordComparator comparator(1);	
+	unsigned long indextoadd = -1 * binarySearch(record, drillingArray, comparator);
+	drillingArray->addAt(currentRecord, indextoadd);
+}
 
 	std::string line;
 	// line counter
