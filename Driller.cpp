@@ -13,8 +13,10 @@
 
 const std::string INVALID_DATE = "INVALID_DATE";
 const std::string DUPLICATE_TIMESTAMP = "DUPLICATE_TIMESTAMP";
+const std::string DUPLICATE_TIMESTAMP_DIFFERENT_FILE = "DUPLICATE_TIMESTAMP_DIFFERENT_FILE";
 const std::string INVALID_DATA = "INVALID_DATA";
 const std::string VALID_RECORD = "VALID_RECORD";
+unsigned long file_starting_index_in_array = 0;
 
 int main() {
 	ResizableArray<DrillingRecord>* drillingArray = new ResizableArray<DrillingRecord>();
@@ -37,6 +39,7 @@ int main() {
 	{
 		filecounter++;
 		linecounter = 1;
+		file_starting_index_in_array = drillingArray.getSize();
 		while (std::getline(datafile, line))
 		{
 			readline(line, linecounter);
@@ -97,6 +100,11 @@ std::string checkrecord(ResizableArray<DrillingRecord>& drillingArray, DrillingR
 	unsigned long result = binarySearch(record, drillingArray, comparator);
 	else if (result >= 0)
 	{
+		if (result >= file_starting_index_in_array)
+		{
+			drillingArray.replaceAt(record, result);
+			return DUPLICATE_TIMESTAMP_DIFFERENT_FILE;
+		}
 		return DUPLICATE_TIMESTAMP;
 	}
 	// check data validity
@@ -104,7 +112,7 @@ std::string checkrecord(ResizableArray<DrillingRecord>& drillingArray, DrillingR
 	{
 		return INVALID_DATA;
 	}
-	return "";
+	return VALID_RECORD;
 }
 
 bool checkdata(DrillingRecord record)
