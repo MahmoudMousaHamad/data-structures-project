@@ -11,11 +11,10 @@
 #include "Comparator.h"
 #include "DrillingRecordComparator.h"
 
-const std::string DUPLICATE_DATE = "DUPLICATE_DATE";
+const std::string INVALID_DATE = "INVALID_DATE";
 const std::string DUPLICATE_TIMESTAMP = "DUPLICATE_TIMESTAMP";
 const std::string INVALID_DATA = "INVALID_DATA";
 const std::string VALID_RECORD = "VALID_RECORD";
-
 
 int main() {
 	ResizableArray<DrillingRecord>* drillingArray = new ResizableArray<DrillingRecord>();
@@ -65,13 +64,16 @@ void readline(std::string line, unsigned int& counter)
 	// current record
 	DrillingRecord currentRecord;
 	// parse current row
-	while (ss.good()) {
+	while (ss.good()) 
+	{
 		std::string field;
 		getline(ss, field, ',');
-		if (columnCounter == 0 || columnCounter == 1) {
+		if (columnCounter == 0 || columnCounter == 1) 
+		{
 			// string column
 			currentRecord.addString(field);
-		} else {
+		} else 
+		{
 			currentRecord.addNum(std::stod(field));
 		}
 		columnCounter++;
@@ -84,21 +86,43 @@ void readline(std::string line, unsigned int& counter)
 }
 
 std::string checkrecord(ResizableArray<DrillingRecord>& drillingArray, DrillingRecord record)
-{
-	// check date
-	
+{ 
+	// check date using
+	if (drillingArray.get(0).getString(0) != record.getString(0))
+	{
+		return INVALID_DATE;
+	}
 	// check timestamp
-
+	DrillingRecordComparator comparator(1);	
+	unsigned long result = binarySearch(record, drillingArray, comparator);
+	else if (result >= 0)
+	{
+		return DUPLICATE_TIMESTAMP;
+	}
 	// check data validity
-
+	else if (checkdata(record))
+	{
+		return INVALID_DATA;
+	}
 	return "";
+}
+
+bool checkdata(DrillingRecord record)
+{
+	for (unsigned long i = 0; i < 16; i++) 
+	{
+		if (record.getNum(j) <= 0.0) 
+		{
+			return false;
+		} 
+	}
+	return true;
 }
 
 void insertrecord(ResizableArray<DrillingRecord>& drillingArray, DrillingRecord record)
 {
-	DrillingRecordComparator comparator(1);	
-	unsigned long indextoadd = -1 * binarySearch(record, drillingArray, comparator);
-	drillingArray->addAt(currentRecord, indextoadd);
+	
+	drillingArray->add(currentRecord);
 }
 
 	std::string line;
