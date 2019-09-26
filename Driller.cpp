@@ -17,14 +17,17 @@ const std::string DUPLICATE_TIMESTAMP_DIFFERENT_FILE = "DUPLICATE_TIMESTAMP_DIFF
 const std::string INVALID_DATA = "INVALID_DATA";
 const std::string VALID_RECORD = "VALID_RECORD";
 unsigned long file_starting_index_in_array = 0;
+unsigned long validrecordscounter;
+unsigned long storedrecordscounter;
 
 int main() {
 	ResizableArray<DrillingRecord>* drillingArray = new ResizableArray<DrillingRecord>();
 	ResizableArray<std::string>* timestamps = new ResizableArray<std::string>();
 	std::string filename = "";
 	std::string line = "";
-	unsigned int filecounter;
-	unsigned int linecounter;
+	// Totals
+	unsigned long filecounter;
+	unsigned long linecounter;
 	// Promote user for the name of a data file
 	std::cout << "Enter data file name: \n";
 	// Break from loop if no file name is given
@@ -84,8 +87,8 @@ void readline(std::string line, unsigned int& counter)
 	if (checkrecord(drillingArray, currentRecord) == VALID_RECORD)
 	{
 		insertrecord(array, currentRecord);
-		counter++;
 	}
+	counter++;
 }
 
 std::string checkrecord(ResizableArray<DrillingRecord>& drillingArray, DrillingRecord record)
@@ -112,6 +115,7 @@ std::string checkrecord(ResizableArray<DrillingRecord>& drillingArray, DrillingR
 	{
 		return INVALID_DATA;
 	}
+	validrecordscounter++;
 	return VALID_RECORD;
 }
 
@@ -129,8 +133,8 @@ bool checkdata(DrillingRecord record)
 
 void insertrecord(ResizableArray<DrillingRecord>& drillingArray, DrillingRecord record)
 {
-	
 	drillingArray->add(currentRecord);
+	storedrecordscounter++;	
 }
 
 	std::string line;
