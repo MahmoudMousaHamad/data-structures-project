@@ -3,7 +3,6 @@
 #ifndef SEARCH_H
 #define SEARCH_H
 
-#include <math.h>
 #include "Exceptions.h"
 #include "ResizableArray.h"
 #include "Comparator.h"
@@ -35,5 +34,18 @@ long binarySearch(const T& item, const ResizableArray<T>& array, const Comparato
         }
     }
     return (mid + 1) * -1;
+}
+
+template <typename T>
+bool linearSearch(const T& item, const ResizableArray<T>& array, const Comparator<T>& comparator)
+{
+    for (unsigned long i = 0; i < array.getSize(); i++)
+    {
+        if (comparator.compare(item, array.get(i)) == 0)
+        {
+            return true;
+        }
+    }
+    return false;
 }
 #endif

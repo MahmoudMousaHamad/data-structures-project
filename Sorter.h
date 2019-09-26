@@ -17,13 +17,12 @@ public:
     static void sort(ResizableArray<T>& array, const Comparator<T>& comparator);
 };
 
-// implementation goes here
 
 // merges two subarrays in array
 // First subarray is array[left..middle]
 // Second subarray is array[middle+1..right]
 template <typename T>
-voidSorter::merge(ResizableArray<T>& array, unsigned long left, unsigned long middle, unsigned long right, Comparator<T>& comparator)
+void Sorter::merge(ResizableArray<T>& array, unsigned long left, unsigned long middle, unsigned long right, Comparator<T>& comparator)
 {
     // create temp subarrays
     int lenl, lenr;
