@@ -19,12 +19,68 @@ const std::string DUPLICATE_TIMESTAMP_DIFFERENT_FILE = "DUPLICATE_TIMESTAMP_DIFF
 const std::string INVALID_DATA = "INVALID_DATA";
 const std::string VALID_RECORD = "VALID_RECORD";
 unsigned long file_starting_index_in_array = 0;
-unsigned long validrecordscounter;
-unsigned long storedrecordscounter;
+unsigned long datalinesread;
+unsigned long validrecords;
+unsigned long storedrecords;
 
 int main() 
 {
 	inputloop();
+	datamanipulationloop();
+}
+
+void datamanipulationloop()
+{
+	std::string userinput;
+	std::string outputfilename;
+	std::ifstream outputdatafile;
+	bool sendoutputtocout = false;
+	bool fileaccessable = false;
+	print("Enter (o)utput, (s)ort, (f)ind, or (q)uit: ");
+	std::cin >> userinput;
+	if (userinput.empty())
+	{
+		continue;
+	}
+	do
+	{
+		print("Enter output file name:");
+		std::cin >> outputfilename;
+		if (outputfilename.empty())
+		{
+			sendoutputtocout = true;
+			std::cout << printarray(drillingArray);
+		}
+		else
+		{
+			outputdatafile.open(outputfilename);
+			if (!outputdatafile.is_open())
+			{
+				print("File is not available.");
+				continue;
+			}
+			else
+			{
+				fileaccessable = true;
+			}
+		}
+	} while (!fileaccessable || sendoutputtocout);
+	if (fileaccessable)
+	{
+		outputdatafile << printarray();
+		outputdatafile.close();
+	}
+}
+
+std::string printarray(const ResizableArray<DrillingRecord>& array)
+{
+	std::ostringstream oSS;
+	for (unsigned long i = 0; i < array.getSize(); i++)
+	{
+		oSS << array[i] << "\n";
+	}
+	oSS << "Data lines read: " << datalinesread << "; Valid drilling records: " << validrecords << "; Drilling records in memory: " << storedrecords << "\n";
+	return oSS.str();
 }
 
 void inputloop()
@@ -36,7 +92,7 @@ void inputloop()
 		std::string line;
 		unsigned long linecounter = 1;
 		// prompt user for the name of a data file
-		println("Enter data file name: ");
+		print("Enter data file name: ");
 		// get file name from user
 		std::getline(std::cin, filename);
 		// exit input loop if user inputs nothin
@@ -53,7 +109,7 @@ void inputloop()
 		}
 		else 
 		{
-			println("File is not available.");
+			print("File is not available.");
 			break;
 		}
 	}
@@ -89,6 +145,7 @@ void readline(std::string line, unsigned int& counter, const std::ifstream& data
 		}
 		columnCounter++;
 	}
+	datalinesread++;
 	recordvalidity = checkrecord(drillingArray, currentRecord);
 	if (recordvalidity == VALID_RECORD)
 	{
@@ -97,7 +154,7 @@ void readline(std::string line, unsigned int& counter, const std::ifstream& data
 	else if (recordvalidity == INVALID_DATE)
 	{
 		datafile.close();
-		println("Date mismatch; file closed.");
+		print("Date mismatch; file closed.");
 	}
 	counter++;
 }
@@ -127,7 +184,7 @@ std::string checkrecord(ResizableArray<DrillingRecord>& drillingArray, DrillingR
 	{
 		return INVALID_DATA;
 	}
-	validrecordscounter++;
+	validrecords++;
 	return VALID_RECORD;
 }
 
@@ -146,10 +203,10 @@ bool checkdata(DrillingRecord record)
 void insertrecord(ResizableArray<DrillingRecord>& drillingArray, DrillingRecord record)
 {
 	drillingArray->add(currentRecord);
-	storedrecordscounter++;	
+	storedrecords++;	
 }
 
-void println(std::string output)
+void print(std::string output)
 {
-	std::out << output << "\n";
+	std::out << output;
 }
