@@ -132,6 +132,18 @@ T ResizableArray<T>::get(unsigned long index) const
 }
 
 template <typename T>
+T ResizableArray<T>::operator[](unsigned long index) const
+{
+    if (index >= this->size || index < 0)
+    {
+        throw new ExceptionIndexOutOfRange();
+    }
+    
+	T record = data[index];
+	return record;
+}
+
+template <typename T>
 void ResizableArray<T>::doubleCapacity() 
 {
     unsigned long newCapacity = this->capacity * 2;

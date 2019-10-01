@@ -20,6 +20,8 @@ std::ostream& operator<< (std::ostream& os, const DrillingRecord& record) {
     return os;
 }
 
+DrillingRecord::DrillingRecord() {}
+
 void DrillingRecord::addNum(double num) {
 	nums[numCtr] = num;
 	numCtr++;

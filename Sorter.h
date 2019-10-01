@@ -11,8 +11,8 @@ template <typename T>
 class Sorter {
 private:
     // additional member functions (methods) and variables (fields) may be added
-    void merge(ResizableArray<T>& array, unsigned long left, unsigned long middle, unsigned long right, Comparator<T>& comparator);
-    void mergesort(ResizableArray<T>& array, unsigned long left, unsigned long right, Comparator<T>& comparator);
+    static void merge(ResizableArray<T>& array, unsigned long left, unsigned long middle, unsigned long right, const Comparator<T>& comparator);
+    static void mergesort(ResizableArray<T>& array, unsigned long left, unsigned long right, const Comparator<T>& comparator);
 public:
     static void sort(ResizableArray<T>& array, const Comparator<T>& comparator);
 };
@@ -21,13 +21,14 @@ public:
 // First subarray is array[left..middle]
 // Second subarray is array[middle+1..right]
 template <typename T>
-void Sorter<T>::merge(ResizableArray<T>& array, unsigned long left, unsigned long middle, unsigned long right, Comparator<T>& comparator)
+void Sorter<T>::merge(ResizableArray<T>& array, unsigned long left, unsigned long middle, unsigned long right, const Comparator<T>& comparator)
 {
     // create temp subarrays
-    int lenl, lenr;
+    unsigned long lenl, lenr;
     lenl = middle - left + 1;
     lenr = right - middle;
-    unsigned long L[lenl], R[lenr];
+    T* L = new T[lenl];
+    T* R = new T[lenr];
 
     for (unsigned long i = 0; i < lenl; i++)
     {
@@ -52,11 +53,11 @@ void Sorter<T>::merge(ResizableArray<T>& array, unsigned long left, unsigned lon
         int result = comparator.compare(L[i], R[j]);
         if (result <= 0)
         {
-            array.replace(L[i], k);
+            array.replaceAt(L[i], k);
         }
         else 
         {
-            array.replace(R[j], k);
+            array.replaceAt(R[j], k);
         }
         k++;
     }
@@ -64,21 +65,21 @@ void Sorter<T>::merge(ResizableArray<T>& array, unsigned long left, unsigned lon
     // copy remaining elements
     while (i < lenl)
     {
-        array.replace(L[i], k);
+        array.replaceAt(L[i], k);
         i++;
         k++;
     }
 
     while (j < lenl)
     {
-        array.replace(R[j], k);
+        array.replaceAt(R[j], k);
         j++;
         k++;
     }
 }
 
 template <typename T>
-void Sorter<T>::mergesort(ResizableArray<T>& array, unsigned long left, unsigned long right, Comparator<T>& comparator)
+void Sorter<T>::mergesort(ResizableArray<T>& array, unsigned long left, unsigned long right, const Comparator<T>& comparator)
 {
     if (right > left )
     {
@@ -92,6 +93,7 @@ void Sorter<T>::mergesort(ResizableArray<T>& array, unsigned long left, unsigned
 template <typename T>
 void Sorter<T>::sort(ResizableArray<T>& array, const Comparator<T>& comparator)
 {
+    
     mergesort(array, 0, array.getSize() - 1, comparator);
 }
 
