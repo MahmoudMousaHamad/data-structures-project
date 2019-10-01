@@ -13,11 +13,11 @@ template <typename T>
 long binarySearch(const T& item, const ResizableArray<T>& array, const Comparator<T>& comparator) {
     unsigned long left = 0;
     unsigned long right = array.getSize();
-    unsigned long mid
+    unsigned long mid;
     while (right > left)
     {
         mid = (left + right) / 2;
-        int result = comparator.compare(item, array.get(mid))
+        int result = comparator.compare(item, array.get(mid));
         if (result == 0)
         {
             return mid;

@@ -17,12 +17,11 @@ public:
     static void sort(ResizableArray<T>& array, const Comparator<T>& comparator);
 };
 
-
 // merges two subarrays in array
 // First subarray is array[left..middle]
 // Second subarray is array[middle+1..right]
 template <typename T>
-void Sorter::merge(ResizableArray<T>& array, unsigned long left, unsigned long middle, unsigned long right, Comparator<T>& comparator)
+void Sorter<T>::merge(ResizableArray<T>& array, unsigned long left, unsigned long middle, unsigned long right, Comparator<T>& comparator)
 {
     // create temp subarrays
     int lenl, lenr;
@@ -37,7 +36,7 @@ void Sorter::merge(ResizableArray<T>& array, unsigned long left, unsigned long m
 
     for (unsigned long i = 0; i < lenr; i++)
     {
-        R[i] = array.get(middle + j + 1);
+        R[i] = array.get(middle + i + 1);
     }
 
     unsigned long i, j, k;
@@ -46,7 +45,7 @@ void Sorter::merge(ResizableArray<T>& array, unsigned long left, unsigned long m
     // initial index of right subarray
     j = 0;
     // initial index of merged array
-    k = l;
+    k = left;
 
     while (i < lenl && j < lenr)
     {
@@ -79,7 +78,7 @@ void Sorter::merge(ResizableArray<T>& array, unsigned long left, unsigned long m
 }
 
 template <typename T>
-void Sorter::mergesort(ResizableArray<T>& array, unsigned long left, unsigned long right, Comparator<T>& comparator)
+void Sorter<T>::mergesort(ResizableArray<T>& array, unsigned long left, unsigned long right, Comparator<T>& comparator)
 {
     if (right > left )
     {
@@ -91,7 +90,7 @@ void Sorter::mergesort(ResizableArray<T>& array, unsigned long left, unsigned lo
 }
 
 template <typename T>
-static void Sorter::sort(ResizableArray<T>& array, const Comparator<T>& comparator)
+void Sorter<T>::sort(ResizableArray<T>& array, const Comparator<T>& comparator)
 {
     mergesort(array, 0, array.getSize() - 1, comparator);
 }

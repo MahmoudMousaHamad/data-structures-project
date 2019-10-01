@@ -23,10 +23,20 @@ unsigned long datalinesread;
 unsigned long validrecords;
 unsigned long storedrecords;
 
+void inputloop();
+void datamanipulationloop();
+std::string printarray(ResizableArray<DrillingRecord>* array);
+void readline(std::string line, unsigned int& counter, const std::ifstream& datafile);
+std::string checkrecord(ResizableArray<DrillingRecord>& drillingArray, DrillingRecord record);
+bool checkdata(DrillingRecord record);
+void insertrecord(ResizableArray<DrillingRecord>& drillingArray, DrillingRecord record);
+void print(std::string output);
+
 int main() 
 {
 	inputloop();
 	datamanipulationloop();
+	return 0;
 }
 
 void datamanipulationloop()
@@ -36,12 +46,20 @@ void datamanipulationloop()
 	std::ifstream outputdatafile;
 	bool sendoutputtocout = false;
 	bool fileaccessable = false;
-	print("Enter (o)utput, (s)ort, (f)ind, or (q)uit: ");
-	std::cin >> userinput;
-	if (userinput.empty())
+	do
 	{
-		continue;
-	}
+		print("Enter (o)utput, (s)ort, (f)ind, or (q)uit: ");
+		std::cin >> userinput;
+		if (userinput.empty())
+		{
+			continue;
+		}
+		else
+		{
+			break;
+		}
+	} while (true);
+	
 	do
 	{
 		print("Enter output file name:");
@@ -67,12 +85,12 @@ void datamanipulationloop()
 	} while (!fileaccessable || sendoutputtocout);
 	if (fileaccessable)
 	{
-		outputdatafile << printarray();
+		outputdatafile << printarray(drillingArray);
 		outputdatafile.close();
 	}
 }
 
-std::string printarray(const ResizableArray<DrillingRecord>& array)
+std::string printarray(ResizableArray<DrillingRecord>* array)
 {
 	std::ostringstream oSS;
 	for (unsigned long i = 0; i < array.getSize(); i++)

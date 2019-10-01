@@ -6,7 +6,7 @@ DrillingRecordComparator::DrillingRecordComparator(unsigned int _column)
     column = _column;
 }
 
-int DrillingRecordComparator::compare(const DrillingRecord& item1, const DrillingRecord& item2)
+int DrillingRecordComparator::compare(const DrillingRecord& item1, const DrillingRecord& item2) const
 {
     if (column == 0 || column  == 1)
     {
@@ -14,6 +14,6 @@ int DrillingRecordComparator::compare(const DrillingRecord& item1, const Drillin
     }
     else
     {
-        return item1.getNum(column - 2) - item2.getNum(column - 2);
+        return (int) (item1.getNum(column - 2) - item2.getNum(column - 2));
     }
 }
