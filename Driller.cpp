@@ -19,6 +19,7 @@ const std::string DUPLICATE_TIMESTAMP_DIFFERENT_FILE = "DUPLICATE_TIMESTAMP_DIFF
 const std::string INVALID_DATA = "INVALID_DATA";
 const std::string VALID_RECORD = "VALID_RECORD";
 long file_starting_index_in_array = 0;
+unsigned long linecounter = 0;
 unsigned long datalinesread;
 unsigned long validrecords;
 unsigned long storedrecords;
@@ -26,7 +27,7 @@ unsigned long storedrecords;
 void inputloop();
 void datamanipulationloop();
 std::string printarray();
-void readline(std::string line, unsigned long& counter, const std::ifstream& datafile);
+void readline(std::string line, const std::ifstream& datafile);
 std::string checkrecord(DrillingRecord record);
 bool checkdata(DrillingRecord record);
 void insertrecord(DrillingRecord record);
@@ -34,7 +35,7 @@ void print(std::string output);
 void output();
 void quit();
 
-int main() 
+int main()
 {
 	inputloop();
 	datamanipulationloop();
@@ -128,11 +129,11 @@ std::string printarray()
 }
 
 
-void readline(std::string line, unsigned long& counter, std::ifstream& datafile)
+void readline(std::string line, std::ifstream& datafile)
 {
-	if (counter == 1)
+	if (linecounter == 0)
 	{
-		counter++;
+		linecounter++;
 		return;
 	}
 	// parse input
@@ -171,7 +172,7 @@ void readline(std::string line, unsigned long& counter, std::ifstream& datafile)
 		datafile.close();
 		print("Date mismatch; file closed.\n");
 	}
-	counter++;
+	linecounter++;
 }
 
 void inputloop()
@@ -181,7 +182,6 @@ void inputloop()
 	{
 		std::string filename;
 		std::string line;
-		unsigned long linecounter = 1;
 		// prompt user for the name of a data file
 		print("Enter data file name: ");
 		// get file name from user
@@ -194,7 +194,7 @@ void inputloop()
 			file_starting_index_in_array = drillingArray->getSize();
 			while (std::getline(datafile, line))
 			{
-				readline(line, linecounter, datafile);
+				readline(line, datafile);
 			}
 			datafile.close();
 		}
@@ -218,23 +218,25 @@ std::string checkrecord(DrillingRecord record)
 		else 
 		{
 			// check timestamp
-			long result = -1;
+			DrillingRecordComparator comparator(1);
+			long result = -1; //binarySearch(record, *drillingArray, comparator);
 			if (result >= 0)
 			{
-				if (result >= file_starting_index_in_array)
-				{
-					drillingArray->replaceAt(record, (result - 1) * -1);
-					return DUPLICATE_TIMESTAMP_DIFFERENT_FILE;
-				}
+				// if (result >= file_starting_index_in_array)
+				// {
+				// 	drillingArray->replaceAt(record, result);
+				// 	return DUPLICATE_TIMESTAMP_DIFFERENT_FILE;
+				// }
 				return DUPLICATE_TIMESTAMP;
+			} 
+			else if (!checkdata(record))
+			{
+				print("Invalid floating-point data at line " + std::to_string(linecounter) + ".\n");
+				return INVALID_DATA;
 			}
 		}
 	}
 	// check data validity
-	else if (!checkdata(record))
-	{
-		return INVALID_DATA;
-	}
 	validrecords++;
 	return VALID_RECORD;
 }
@@ -247,7 +249,7 @@ bool checkdata(DrillingRecord record)
 {
 	for (unsigned int i = 0; i < 16; i++) 
 	{
-		if (record.getNum(i) <= 0.0) 
+		if (record.getNum(i) <= 0) 
 		{
 			return false;
 		}

@@ -12,12 +12,12 @@
 template <typename T>
 long binarySearch(const T& item, const ResizableArray<T>& array, const Comparator<T>& comparator) {
     unsigned long left = 0;
-    unsigned long right = array.getSize();
+    unsigned long right = array.getSize() - 1;
     unsigned long mid;
     while (right > left)
     {
         mid = (left + right) / 2;
-        int result = comparator.compare(item, array.get(mid));
+        int result = comparator.compare(item, array[mid]);
         if (result == 0)
         {
             return mid;
@@ -37,15 +37,15 @@ long binarySearch(const T& item, const ResizableArray<T>& array, const Comparato
 }
 
 template <typename T>
-bool linearSearch(const T& item, const ResizableArray<T>& array, const Comparator<T>& comparator)
+long linearSearch(const T& item, const ResizableArray<T>& array, const Comparator<T>& comparator)
 {
     for (unsigned long i = 0; i < array.getSize(); i++)
     {
         if (comparator.compare(item, array.get(i)) == 0)
         {
-            return true;
+            return i;
         }
     }
-    return false;
+    return -1;
 }
 #endif
