@@ -217,7 +217,7 @@ std::string checkrecord(DrillingRecord record)
 		{
 			// check timestamp
 			DrillingRecordComparator comparator(1);	
-			Sorter<DrillingRecord>::sort(*drillingArray, comparator);
+			// Sorter<DrillingRecord>::sort(*drillingArray, comparator);
 			long result = -1;
 			if (result >= 0)
 			{

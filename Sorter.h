@@ -98,7 +98,6 @@ void Sorter<T>::quicksort(ResizableArray<T>& array, unsigned long left, unsigned
     {
         unsigned long i, j;
         unsigned long pivot_point = (unsigned long) (left + right) / 2;
-        std::cout << pivot_point; 
         i = left - 1;
         j = right + 1;
         do
@@ -127,8 +126,15 @@ void Sorter<T>::quicksort(ResizableArray<T>& array, unsigned long left, unsigned
         T temp = array[pivot_point];
         array[pivot_point] = array[j];
         array[j] = temp;
-        quicksort(array, left, j - 1, comparator);
-        quicksort(array, j + 1, right, comparator);
+        std::cout << "Pivot: " << std::to_string(pivot_point) << " Array size: " << std::to_string(array.getSize()) << "\n";
+        if (left < j - 1) 
+        {
+            quicksort(array, left, j - 1, comparator);
+        }
+        if (right > j + 1)
+        {
+            quicksort(array, j + 1, right, comparator);
+        }
     }
 }
 
