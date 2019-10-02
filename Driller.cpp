@@ -131,16 +131,12 @@ std::string printarray()
 
 void readline(std::string line, std::ifstream& datafile)
 {
-	if (linecounter == 0)
-	{
-		linecounter++;
-		return;
-	}
+	linecounter++;
 	// parse input
 	std::stringstream ss(line);
 	// column counter
 	int columnCounter = 0;
-	// record validity level
+	// record validity flag
 	std::string recordvalidity;
 	// current record
 	DrillingRecord currentRecord;
@@ -153,7 +149,8 @@ void readline(std::string line, std::ifstream& datafile)
 		{
 			// string column
 			currentRecord.addString(field);
-		} else 
+		} 
+		else 
 		{
 			currentRecord.addNum(std::stod(field));
 		}
@@ -172,7 +169,6 @@ void readline(std::string line, std::ifstream& datafile)
 		datafile.close();
 		print("Date mismatch; file closed.\n");
 	}
-	linecounter++;
 }
 
 void inputloop()
@@ -182,6 +178,7 @@ void inputloop()
 	{
 		std::string filename;
 		std::string line;
+		linecounter = 0;
 		// prompt user for the name of a data file
 		print("Enter data file name: ");
 		// get file name from user
@@ -192,6 +189,7 @@ void inputloop()
 		if (datafile.is_open())
 		{
 			file_starting_index_in_array = drillingArray->getSize();
+			std::getline(datafile, line);
 			while (std::getline(datafile, line))
 			{
 				readline(line, datafile);
@@ -219,7 +217,7 @@ std::string checkrecord(DrillingRecord record)
 		{
 			// check timestamp
 			DrillingRecordComparator comparator(1);
-			long result = -1; //binarySearch(record, *drillingArray, comparator);
+			long result = linearSearch(record, *drillingArray, comparator);
 			if (result >= 0)
 			{
 				// if (result >= file_starting_index_in_array)
@@ -227,16 +225,17 @@ std::string checkrecord(DrillingRecord record)
 				// 	drillingArray->replaceAt(record, result);
 				// 	return DUPLICATE_TIMESTAMP_DIFFERENT_FILE;
 				// }
+				print("Duplicate timestamp " + record.getString(1) + " at line " + std::to_string(linecounter) + ".\n");
 				return DUPLICATE_TIMESTAMP;
 			} 
-			else if (!checkdata(record))
-			{
-				print("Invalid floating-point data at line " + std::to_string(linecounter) + ".\n");
-				return INVALID_DATA;
-			}
 		}
 	}
 	// check data validity
+	if (!checkdata(record))
+	{
+		print("Invalid floating-point data at line " + std::to_string(linecounter) + ".\n");
+		return INVALID_DATA;
+	}
 	validrecords++;
 	return VALID_RECORD;
 }
