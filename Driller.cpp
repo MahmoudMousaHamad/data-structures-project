@@ -31,6 +31,8 @@ std::string checkrecord(DrillingRecord record);
 bool checkdata(DrillingRecord record);
 void insertrecord(DrillingRecord record);
 void print(std::string output);
+void output();
+void quit();
 
 int main() 
 {
@@ -42,35 +44,58 @@ int main()
 void datamanipulationloop()
 {
 	std::string userinput;
-	std::string outputfilename;
-	std::ofstream outputdatafile;
-	bool sendoutputtocout = false;
-	bool fileaccessable = false;
 	do
 	{
-		print("Enter (o)utput, (s)ort, (f)ind, or (q)uit: ");
+		print("Enter (o)utput, (s)ort, (f)ind, or (q)uit: \n");
 		std::cin >> userinput;
 		if (userinput.empty())
 		{
 			continue;
 		}
 		else
+		if (userinput == "o")
 		{
+			output();
+		}
+		else if (userinput == "s")
+		{
+			// sort();
+		}
+		else if (userinput == "f")
+		{
+			// find();
+		}
+		else if (userinput == "q")
+		{
+			quit();
 			break;
 		}
 	} while (true);
-	
+}
+
+void quit()
+{
+	print("Thanks for using Driller.\n");
+}
+
+void output()
+{
+	std::string outputfilename;
+	std::ofstream outputdatafile;
+	bool sendoutputtocout = false;
+	bool fileaccessable = false;
 	do
 	{
-		print("Enter output file name:");
-		std::cin >> outputfilename;
-		if (outputfilename.empty())
+		print("Enter output file name: ");
+		if (std::cin.get() == '\n')
 		{
 			sendoutputtocout = true;
 			std::cout << printarray();
+			break;
 		}
 		else
 		{
+			std::cin >> outputfilename;
 			outputdatafile.open(outputfilename);
 			if (!outputdatafile.is_open())
 			{
@@ -98,7 +123,7 @@ std::string printarray()
 		DrillingRecord record = drillingArray->get(i);
 		oSS << record << "\n";
 	}
-	oSS << "Data lines read: " << datalinesread << "; Valid drilling records: " << validrecords << "; Drilling records in memory: " << storedrecords << "\n";
+	oSS << "Data lines read: " << datalinesread << "; Valid drilling records read: " << validrecords << "; Drilling records in memory: " << storedrecords << "\n";
 	return oSS.str();
 }
 
@@ -142,7 +167,7 @@ void readline(std::string line, unsigned long& counter, std::ifstream& datafile)
 	else if (recordvalidity == INVALID_DATE)
 	{
 		datafile.close();
-		print("Date mismatch; file closed.");
+		print("Date mismatch; file closed.\n");
 	}
 	counter++;
 }
@@ -181,36 +206,43 @@ void inputloop()
 
 std::string checkrecord(DrillingRecord record)
 { 
-	// check date using
-	if (drillingArray->get(0).getString(0) != record.getString(0))
+	if (drillingArray->getSize() > 0)
 	{
-		return INVALID_DATE;
-	}
-	else 
-	{
-		// check timestamp
-		DrillingRecordComparator comparator(1);	
-		Sorter<DrillingRecord>::sort(*drillingArray, comparator);
-		long result = binarySearch(record, *drillingArray, comparator);
-		if (result >= 0)
+		// check date using
+		if (drillingArray->get(0).getString(0) != record.getString(0))
 		{
-			if (result >= file_starting_index_in_array)
+			return INVALID_DATE;
+		}
+		else 
+		{
+			// check timestamp
+			DrillingRecordComparator comparator(1);	
+			Sorter<DrillingRecord>::sort(*drillingArray, comparator);
+			long result = -1;
+			if (result >= 0)
 			{
-				drillingArray->replaceAt(record, (result - 1) * -1);
-				return DUPLICATE_TIMESTAMP_DIFFERENT_FILE;
+				if (result >= file_starting_index_in_array)
+				{
+					drillingArray->replaceAt(record, (result - 1) * -1);
+					return DUPLICATE_TIMESTAMP_DIFFERENT_FILE;
+				}
+				return DUPLICATE_TIMESTAMP;
 			}
-			return DUPLICATE_TIMESTAMP;
 		}
-		// check data validity
-		else if (checkdata(record))
-		{
-			return INVALID_DATA;
-		}
+	}
+	// check data validity
+	else if (!checkdata(record))
+	{
+		return INVALID_DATA;
 	}
 	validrecords++;
 	return VALID_RECORD;
 }
 
+/**
+ * @param record
+ * @returns true if the record float-point data is valid.
+*/
 bool checkdata(DrillingRecord record)
 {
 	for (unsigned int i = 0; i < 16; i++) 

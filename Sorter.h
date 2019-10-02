@@ -13,6 +13,7 @@ private:
     // additional member functions (methods) and variables (fields) may be added
     static void merge(ResizableArray<T>& array, unsigned long left, unsigned long middle, unsigned long right, const Comparator<T>& comparator);
     static void mergesort(ResizableArray<T>& array, unsigned long left, unsigned long right, const Comparator<T>& comparator);
+    static void quicksort(ResizableArray<T>& array, unsigned long left, unsigned long right, const Comparator<T>& comparator);
 public:
     static void sort(ResizableArray<T>& array, const Comparator<T>& comparator);
 };
@@ -91,10 +92,50 @@ void Sorter<T>::mergesort(ResizableArray<T>& array, unsigned long left, unsigned
 }
 
 template <typename T>
+void Sorter<T>::quicksort(ResizableArray<T>& array, unsigned long left, unsigned long right, const Comparator<T>& comparator)
+{
+    if (left < right)
+    {
+        unsigned long i, j;
+        unsigned long pivot_point = (unsigned long) (left + right) / 2;
+        std::cout << pivot_point; 
+        i = left - 1;
+        j = right + 1;
+        do
+        {
+            do
+            {
+                i += 1;
+            } while (j >= i && comparator.compare(array[i], array[pivot_point]) <= 0);
+            
+            do
+            {
+                j -= 1;
+            } while (i < j && comparator.compare(array[j], array[pivot_point]) >= 0);
+            if (i < j)
+            {
+                T temp = array[i];
+                array[i] = array[j];
+                array[j] = temp;
+            }
+        }
+        while (i < j);
+        if (i < pivot_point)
+        {
+            j = i;
+        }
+        T temp = array[pivot_point];
+        array[pivot_point] = array[j];
+        array[j] = temp;
+        quicksort(array, left, j - 1, comparator);
+        quicksort(array, j + 1, right, comparator);
+    }
+}
+
+template <typename T>
 void Sorter<T>::sort(ResizableArray<T>& array, const Comparator<T>& comparator)
 {
-    
-    mergesort(array, 0, array.getSize() - 1, comparator);
+    quicksort(array, 0, array.getSize() - 1, comparator);
 }
 
 #endif
