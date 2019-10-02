@@ -163,6 +163,8 @@ void readline(std::string line, unsigned long& counter, std::ifstream& datafile)
 	if (recordvalidity == VALID_RECORD)
 	{
 		insertrecord(currentRecord);
+		DrillingRecordComparator comparator(1);	
+		Sorter<DrillingRecord>::sort(*drillingArray, comparator);
 	} 
 	else if (recordvalidity == INVALID_DATE)
 	{
@@ -216,8 +218,6 @@ std::string checkrecord(DrillingRecord record)
 		else 
 		{
 			// check timestamp
-			DrillingRecordComparator comparator(1);	
-			// Sorter<DrillingRecord>::sort(*drillingArray, comparator);
 			long result = -1;
 			if (result >= 0)
 			{
