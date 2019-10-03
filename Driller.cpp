@@ -23,6 +23,7 @@ unsigned long linecounter = 0;
 unsigned long datalinesread;
 unsigned long validrecords;
 unsigned long storedrecords;
+unsigned int lastsortcolumn = -1;
 
 void inputloop();
 void datamanipulationloop();
@@ -34,11 +35,16 @@ void insertrecord(DrillingRecord record);
 void print(std::string output);
 void output();
 void quit();
+void sort();
+void find();
 
 int main()
 {
 	inputloop();
-	datamanipulationloop();
+	if (drillingArray->getSize() > 0)
+	{
+		datamanipulationloop();
+	}
 	return 0;
 }
 
@@ -60,11 +66,11 @@ void datamanipulationloop()
 		}
 		else if (userinput == "s")
 		{
-			// sort();
+			sort();
 		}
 		else if (userinput == "f")
 		{
-			// find();
+			find();
 		}
 		else if (userinput == "q")
 		{
@@ -72,6 +78,15 @@ void datamanipulationloop()
 			break;
 		}
 	} while (true);
+}
+
+void sort()
+{
+	unsigned int columnnum;
+	std::cin >> columnnum; 
+	DrillingRecordComparator comparator(columnnum);	
+	Sorter<DrillingRecord>::sort(*drillingArray, comparator);
+	lastsortcolumn = columnnum;
 }
 
 void quit()
@@ -82,7 +97,7 @@ void quit()
 void output()
 {
 	std::string outputfilename;
-	std::ofstream outputdatafile;
+	std::fstream outputdatafile;
 	bool sendoutputtocout = false;
 	bool fileaccessable = false;
 	do
@@ -96,16 +111,16 @@ void output()
 		}
 		else
 		{
-			std::cin >> outputfilename;
-			outputdatafile.open(outputfilename);
+			std::getline(std::cin, outputfilename);
+			outputdatafile.open("checkOut.csv");
 			if (!outputdatafile.is_open())
 			{
-				print("File is not available.");
 				continue;
 			}
 			else
 			{
 				fileaccessable = true;
+				break;
 			}
 		}
 	} while (!fileaccessable || sendoutputtocout);
@@ -171,6 +186,62 @@ void readline(std::string line, std::ifstream& datafile)
 	}
 }
 
+void find()
+{
+	unsigned int columnnum;
+	double floatvalue;
+	std::string strvalue;
+	long firstindex;
+	int recordsfoundcounter = 0;
+	std::cin >> columnnum;
+	DrillingRecordComparator comparator(columnnum);
+	DrillingRecord record;
+	if (columnnum > 2)
+	{
+		std::cin >> floatvalue;
+		record.setNum(floatvalue, columnnum);
+	}
+	else
+	{
+		std::cin >> strvalue;
+		record.setString(strvalue, columnnum);
+	}
+	if (lastsortcolumn != columnnum)
+	{
+		Sorter<DrillingRecord>::sort(*drillingArray, comparator);
+	}
+	firstindex = binarySearch(record, *drillingArray, comparator);
+	if (firstindex < 0)
+	{
+		print("Drilling records found: 0.\n");
+		return;
+	}
+	recordsfoundcounter++;
+	for (unsigned long left = firstindex - 1; left > 0; --left)
+	{
+		DrillingRecord recordtocompare = drillingArray->get(left);
+		if (comparator.compare(record, recordtocompare) == 0)
+		{
+			std::cout << recordtocompare;
+			recordsfoundcounter++;
+		}
+	}
+
+	for (unsigned long right = firstindex + 1; right < drillingArray->getSize(); ++right)
+	{
+		DrillingRecord recordtocompare = drillingArray->get(right);
+		if (comparator.compare(record, recordtocompare) == 0)
+		{
+			std::cout << recordtocompare;
+			recordsfoundcounter++;
+		}
+	}
+
+	print("Drilling records found: " + std::to_string(recordsfoundcounter) + ".\n");
+
+}
+
+
 void inputloop()
 {
 	drillingArray = new ResizableArray<DrillingRecord>();
@@ -186,7 +257,7 @@ void inputloop()
 		// exit input loop if user inputs nothin
 		if (filename.empty()) break;
 		std::ifstream datafile(filename);
-		if (datafile.is_open())
+		if (datafile.good())
 		{
 			file_starting_index_in_array = drillingArray->getSize();
 			std::getline(datafile, line);
@@ -198,8 +269,7 @@ void inputloop()
 		}
 		else 
 		{
-			print("File is not available.");
-			break;
+			print("File is not available.\n");
 		}
 	}
 }
@@ -208,26 +278,10 @@ std::string checkrecord(DrillingRecord record)
 { 
 	if (drillingArray->getSize() > 0)
 	{
-		// check date using
+		// check date
 		if (drillingArray->get(0).getString(0) != record.getString(0))
 		{
 			return INVALID_DATE;
-		}
-		else 
-		{
-			// check timestamp
-			DrillingRecordComparator comparator(1);
-			long result = linearSearch(record, *drillingArray, comparator);
-			if (result >= 0)
-			{
-				// if (result >= file_starting_index_in_array)
-				// {
-				// 	drillingArray->replaceAt(record, result);
-				// 	return DUPLICATE_TIMESTAMP_DIFFERENT_FILE;
-				// }
-				print("Duplicate timestamp " + record.getString(1) + " at line " + std::to_string(linecounter) + ".\n");
-				return DUPLICATE_TIMESTAMP;
-			} 
 		}
 	}
 	// check data validity
@@ -236,6 +290,19 @@ std::string checkrecord(DrillingRecord record)
 		print("Invalid floating-point data at line " + std::to_string(linecounter) + ".\n");
 		return INVALID_DATA;
 	}
+	// check timestamp
+	DrillingRecordComparator comparator(1);
+	long result = linearSearch(record, *drillingArray, comparator);
+	if (result >= 0)
+	{
+		// if (result >= file_starting_index_in_array)
+		// {
+		// 	drillingArray->replaceAt(record, result);
+		// 	return DUPLICATE_TIMESTAMP_DIFFERENT_FILE;
+		// }
+		print("Duplicate timestamp " + record.getString(1) + " at line " + std::to_string(linecounter) + ".\n");
+		return DUPLICATE_TIMESTAMP;
+	} 
 	validrecords++;
 	return VALID_RECORD;
 }
