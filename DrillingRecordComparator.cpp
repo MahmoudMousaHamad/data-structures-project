@@ -14,6 +14,19 @@ int DrillingRecordComparator::compare(const DrillingRecord& item1, const Drillin
     }
     else
     {
-        return (int) (item1.getNum(column - 2) - item2.getNum(column - 2));
+        double num1 = item1.getNum(column - 2);
+        double num2 = item2.getNum(column - 2);
+        if (num1 < num2)
+        {
+            return -1;
+        }
+        else if (num1 > num2)
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
     }
 }

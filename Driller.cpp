@@ -196,10 +196,10 @@ void find()
 	std::cin >> columnnum;
 	DrillingRecordComparator comparator(columnnum);
 	DrillingRecord record;
-	if (columnnum > 2)
+	if (columnnum >= 2)
 	{
 		std::cin >> floatvalue;
-		record.setNum(floatvalue, columnnum);
+		record.setNum(floatvalue, columnnum - 2);
 	}
 	else
 	{
@@ -210,35 +210,26 @@ void find()
 	{
 		Sorter<DrillingRecord>::sort(*drillingArray, comparator);
 	}
-	firstindex = binarySearch(record, *drillingArray, comparator);
+	firstindex = linearSearch(record, *drillingArray, comparator);
 	if (firstindex < 0)
 	{
 		print("Drilling records found: 0.\n");
 		return;
 	}
-	recordsfoundcounter++;
-	for (unsigned long left = firstindex - 1; left > 0; --left)
+	for (unsigned long i = firstindex; i < drillingArray->getSize(); ++i)
 	{
-		DrillingRecord recordtocompare = drillingArray->get(left);
+		DrillingRecord recordtocompare = drillingArray->get(i);
 		if (comparator.compare(record, recordtocompare) == 0)
 		{
-			std::cout << recordtocompare;
+			std::cout << recordtocompare << "\n";
 			recordsfoundcounter++;
 		}
-	}
-
-	for (unsigned long right = firstindex + 1; right < drillingArray->getSize(); ++right)
-	{
-		DrillingRecord recordtocompare = drillingArray->get(right);
-		if (comparator.compare(record, recordtocompare) == 0)
+		else
 		{
-			std::cout << recordtocompare;
-			recordsfoundcounter++;
+			break;
 		}
 	}
-
 	print("Drilling records found: " + std::to_string(recordsfoundcounter) + ".\n");
-
 }
 
 

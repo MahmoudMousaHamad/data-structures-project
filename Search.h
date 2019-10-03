@@ -41,7 +41,8 @@ long linearSearch(const T& item, const ResizableArray<T>& array, const Comparato
 {
     for (unsigned long i = 0; i < array.getSize(); i++)
     {
-        if (comparator.compare(item, array.get(i)) == 0)
+        int result = comparator.compare(item, array[i]);
+        if (result == 0)
         {
             return i;
         }
