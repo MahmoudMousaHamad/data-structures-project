@@ -36,6 +36,10 @@ template <typename T>
 ResizableArray<T>::ResizableArray() 
 {
 	data = new T[this->capacity];
+    if (data == nullptr)
+	{
+		throw new ExceptionMemoryNotAvailable();
+	}
 }
 
 template <typename T>
@@ -43,6 +47,10 @@ ResizableArray<T>::ResizableArray(unsigned long capacity)
 {
 	this->capacity = capacity;
 	this->data = new T[capacity];
+    if (data == nullptr)
+	{
+		throw new ExceptionMemoryNotAvailable();
+	}
 }
 
 template <typename T>
@@ -154,6 +162,10 @@ void ResizableArray<T>::doubleCapacity()
 {
     unsigned long newCapacity = this->capacity * 2;
     T *newData = new T[newCapacity];
+    if (newData == nullptr)
+	{
+		throw new ExceptionMemoryNotAvailable();
+	}
     for (unsigned long i = 0; i < this->capacity; i++) 
     {
         newData[i] = this->data[i];
@@ -168,6 +180,10 @@ void ResizableArray<T>::halveCapacity()
 {
     unsigned long newCapacity = (unsigned long) (this->capacity / 2);
     T *newData = new T[newCapacity];
+    if (newData == nullptr)
+	{
+		throw new ExceptionMemoryNotAvailable();
+	}
     for (unsigned long i = 0; i < newCapacity; i++) 
     {
         newData[i] = this->data[i];

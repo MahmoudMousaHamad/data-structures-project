@@ -11,12 +11,13 @@
 // if not found, returns -(location to insert + 1)
 template <typename T>
 long binarySearch(const T& item, const ResizableArray<T>& array, const Comparator<T>& comparator) {
-    unsigned long left = 0;
-    unsigned long right = array.getSize() - 1;
-    unsigned long mid;
-    while (right > left)
+    long left = 0;
+    long right = array.getSize() - 1;
+    long mid;
+    while (left <= right)
     {
-        mid = (left + right) / 2;
+        mid = (long) (left + right) / 2;
+        std::cout << mid << std::endl;
         int result = comparator.compare(item, array[mid]);
         if (result == 0)
         {
@@ -35,13 +36,11 @@ long binarySearch(const T& item, const ResizableArray<T>& array, const Comparato
         }
         else if (result > 0)
         {
-            left = mid;
-            continue;
+            left = mid + 1;
         }
         else
         {
-            right = mid;
-            continue;
+            right = mid - 1;
         }
     }
     return (mid + 1) * -1;
