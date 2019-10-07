@@ -40,9 +40,7 @@ void quit();
 void sort();
 void find();
 bool duplicate_file_name(std::string filename);
-/**
- * Main method
-*/
+
 int main()
 {
 	input_loop();
