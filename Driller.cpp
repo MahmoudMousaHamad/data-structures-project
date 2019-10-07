@@ -30,7 +30,7 @@ unsigned int lastsortcolumn = -1;
 void inputloop();
 void datamanipulationloop();
 std::string printarray();
-void readline(std::string line, const std::ifstream& datafile);
+void readline(std::string line, std::ifstream& datafile);
 std::string checkrecord(DrillingRecord record);
 bool checkdata(DrillingRecord record);
 void insertrecord(DrillingRecord record);
