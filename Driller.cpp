@@ -48,6 +48,7 @@ int main()
 	{
 		DrillingRecordComparator comparator(1);	
 		Sorter<DrillingRecord>::sort(*drillingArray, comparator);
+		lastsortcolumn = 1;
 		datamanipulationloop();
 	}
 	return 0;
