@@ -20,6 +20,17 @@ long binarySearch(const T& item, const ResizableArray<T>& array, const Comparato
         int result = comparator.compare(item, array[mid]);
         if (result == 0)
         {
+            for (long i = mid; i >= 0; --i)
+            {
+                if (comparator.compare(item, array[i]) == 0)
+                {
+                    mid = i;
+                }
+                else 
+                {
+                    break;
+                }
+            }
             return mid;
         }
         else if (result > 0)

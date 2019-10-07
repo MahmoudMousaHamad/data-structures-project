@@ -120,6 +120,12 @@ unsigned long ResizableArray<T>::getSize() const
 }
 
 template <typename T>
+unsigned long ResizableArray<T>::getCapacity() const 
+{
+    return this->capacity;
+}
+
+template <typename T>
 T ResizableArray<T>::get(unsigned long index) const 
 {
     if (index >= this->size || index < 0)

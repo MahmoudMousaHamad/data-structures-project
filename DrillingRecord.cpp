@@ -50,20 +50,36 @@ void DrillingRecord::addString(std::string string)
 
 double DrillingRecord::getNum(unsigned int index) const 
 {
+    if (index >= MAX_NUMS)
+    {
+        throw new ExceptionIndexOutOfRange();
+    }
 	return nums[index];
 }
 
 std::string DrillingRecord::getString(unsigned int index) const 
 {
+    if (index >= MAX_STRINGS)
+    {
+        throw new ExceptionIndexOutOfRange();
+    }
 	return strings[index];
 }
 
 void DrillingRecord::setNum(double num, unsigned int index)
 {
+    if (index >= MAX_NUMS)
+    {
+        throw new ExceptionIndexOutOfRange();
+    }
     nums[index] = num;
 }
 
 void DrillingRecord::setString(std::string string, unsigned int index)
 {
+    if (index >= MAX_STRINGS)
+    {
+        throw new ExceptionIndexOutOfRange();
+    }
     strings[index] = string;
 }
