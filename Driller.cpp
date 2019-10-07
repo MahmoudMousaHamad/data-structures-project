@@ -1,10 +1,7 @@
 #include <iostream>
 #include <fstream>
-#include <vector>
 #include <sstream>
 #include <string>
-#include <algorithm>
-#include <iomanip>
 #include "DrillingRecord.h"
 #include "ResizableArray.h"
 #include "Search.h"
