@@ -12,49 +12,56 @@
 #include "Comparator.h"
 #include "DrillingRecordComparator.h"
 
-
+// Resizable array that stores the records
 ResizableArray<DrillingRecord>* drillingArray;
+// Resizable array used to keep track of input file names to ensure no duplicates
 ResizableArray<std::string>* file_names_array;
+// Constants
 const std::string INVALID_DATE = "INVALID_DATE";
 const std::string DUPLICATE_TIMESTAMP = "DUPLICATE_TIMESTAMP";
 const std::string DUPLICATE_TIMESTAMP_DIFFERENT_FILE = "DUPLICATE_TIMESTAMP_DIFFERENT_FILE";
 const std::string INVALID_DATA = "INVALID_DATA";
 const std::string VALID_RECORD = "VALID_RECORD";
+// Counters and flags
 long file_starting_index_in_array = 0;
-unsigned long linecounter = 0;
-unsigned long datalinesread;
-unsigned long validrecords;
-unsigned long storedrecords;
-unsigned int lastsortcolumn = -1;
-
-void inputloop();
-void datamanipulationloop();
-std::string printarray();
-void readline(std::string line, std::ifstream& datafile);
-std::string checkrecord(DrillingRecord record);
-bool checkdata(DrillingRecord record);
-void insertrecord(DrillingRecord record);
+unsigned long line_counter = 0;
+unsigned long data_lines_read;
+unsigned long valid_records;
+unsigned long stored_records;
+unsigned int sort_column = -1;
+// Functions definitions
+void input_loop();
+void data_manipulation_loop();
+std::string print_array();
+void read_line(std::string line, std::ifstream& datafile);
+std::string check_record(DrillingRecord record);
+bool check_data(DrillingRecord record);
+void insert_record(DrillingRecord record);
 void print(std::string output);
 void output();
 void quit();
 void sort();
 void find();
 bool duplicate_file_name(std::string filename);
-
+/**
+ * Main method
+*/
 int main()
 {
-	inputloop();
+	input_loop();
 	if (drillingArray->getSize() > 0)
 	{
 		DrillingRecordComparator comparator(1);	
 		Sorter<DrillingRecord>::sort(*drillingArray, comparator);
-		lastsortcolumn = 1;
-		datamanipulationloop();
+		sort_column = 1;
+		data_manipulation_loop();
 	}
 	return 0;
 }
-
-void datamanipulationloop()
+/**
+ * Manipulates data upon user's input
+*/
+void data_manipulation_loop()
 {
 	std::string userinput;
 	do
@@ -65,8 +72,7 @@ void datamanipulationloop()
 		{
 			continue;
 		}
-		else
-		if (userinput == "o")
+		else if (userinput == "o")
 		{
 			output();
 		}
@@ -85,21 +91,27 @@ void datamanipulationloop()
 		}
 	} while (true);
 }
-
+/**
+ * Sorts the resizable array
+*/
 void sort()
 {
 	unsigned int columnnum;
 	std::cin >> columnnum; 
 	DrillingRecordComparator comparator(columnnum);	
 	Sorter<DrillingRecord>::sort(*drillingArray, comparator);
-	lastsortcolumn = columnnum;
+	sort_column = columnnum;
 }
-
+/**
+ * Quits the program
+*/
 void quit()
 {
 	print("Thanks for using Driller.\n");
 }
-
+/**
+ * Outputs the content of the resizable array to a file or cout
+*/
 void output()
 {
 	std::string outputfilename;
@@ -111,7 +123,7 @@ void output()
 		std::cin.ignore();
 		if (std::cin.peek() == '\n')
 		{
-			std::cout << printarray();
+			std::cout << print_array();
 			break;
 		}
 		std::getline(std::cin, outputfilename);
@@ -123,13 +135,15 @@ void output()
 		else
 		{
 			outputsuccessful = true;
-			outputfile << printarray();
+			outputfile << print_array();
 			outputfile.close();
 			break;
 		}
 	} while (!outputsuccessful);
 }
-
+/**
+ * Finds a record and its duplicates if they exist
+*/
 void find()
 {
 	unsigned int columnnum;
@@ -150,7 +164,7 @@ void find()
 		std::cin >> strvalue;
 		record.setString(strvalue, columnnum);
 	}
-	if (lastsortcolumn == columnnum)
+	if (sort_column == columnnum)
 	{
 		firstindex = binarySearch(record, *drillingArray, comparator);		
 	}
@@ -171,18 +185,17 @@ void find()
 			std::cout << recordtocompare << "\n";
 			recordsfoundcounter++;
 		}
-		else
+		else if (sort_column == columnnum)
 		{
-			if (lastsortcolumn == columnnum)
-			{
-				break;
-			}
+			break;
 		}
 	}
 	print("Drilling records found: " + std::to_string(recordsfoundcounter) + ".\n");
 }
-
-void inputloop()
+/**
+ * Reads the input data files and stores valid records
+*/
+void input_loop()
 {
 	drillingArray = new ResizableArray<DrillingRecord>();
 	if (drillingArray == nullptr)
@@ -198,7 +211,7 @@ void inputloop()
 	{
 		std::string filename;
 		std::string line;
-		linecounter = 0;
+		line_counter = 0;
 		// prompt user for the name of a data file
 		print("Enter data file name: ");
 		// get file name from user
@@ -217,7 +230,7 @@ void inputloop()
 			std::getline(datafile, line);
 			while (std::getline(datafile, line))
 			{
-				readline(line, datafile);
+				read_line(line, datafile);
 			}
 			file_names_array->add(filename);
 			datafile.close();
@@ -228,10 +241,12 @@ void inputloop()
 		}
 	}
 }
-
-void readline(std::string line, std::ifstream& datafile)
+/**
+ * Reads a single line and, if valid, stores it in the array
+ * */
+void read_line(std::string line, std::ifstream& datafile)
 {
-	linecounter++;
+	line_counter++;
 	// parse input
 	std::stringstream ss(line);
 	// column counter
@@ -256,11 +271,11 @@ void readline(std::string line, std::ifstream& datafile)
 		}
 		columnCounter++;
 	}
-	datalinesread++;
-	recordvalidity = checkrecord(currentRecord);
+	data_lines_read++;
+	recordvalidity = check_record(currentRecord);
 	if (recordvalidity == VALID_RECORD)
 	{
-		insertrecord(currentRecord);
+		insert_record(currentRecord);
 	} 
 	else if (recordvalidity == INVALID_DATE)
 	{
@@ -268,40 +283,9 @@ void readline(std::string line, std::ifstream& datafile)
 		print("Date mismatch; file closed.\n");
 	}
 }
-
-std::string checkrecord(DrillingRecord record)
-{ 
-	if (drillingArray->getSize() > 0)
-	{
-		// check date
-		if (drillingArray->get(0).getString(0) != record.getString(0))
-		{
-			return INVALID_DATE;
-		}
-	}
-	// check data validity
-	if (!checkdata(record))
-	{
-		print("Invalid floating-point data at line " + std::to_string(linecounter) + ".\n");
-		return INVALID_DATA;
-	}
-	// check timestamp
-	DrillingRecordComparator comparator(1);
-	long result = linearSearch(record, *drillingArray, comparator);
-	if (result >= 0)
-	{
-		// if (result >= file_starting_index_in_array)
-		// {
-		// 	drillingArray->replaceAt(record, result);
-		// 	return DUPLICATE_TIMESTAMP_DIFFERENT_FILE;
-		// }
-		print("Duplicate timestamp " + record.getString(1) + " at line " + std::to_string(linecounter) + ".\n");
-		return DUPLICATE_TIMESTAMP;
-	}
-	validrecords++;
-	return VALID_RECORD;
-}
-
+/**
+ * Returns whether the current file has already been read
+*/
 bool duplicate_file_name(std::string filename)
 {
 	if (file_names_array->getSize() == 0)
@@ -317,12 +301,45 @@ bool duplicate_file_name(std::string filename)
 	}
 	return false;
 }
-
 /**
- * @param record
- * @returns true if the record float-point data is valid.
+ * Checks the validity of a DrillingRecord object
 */
-bool checkdata(DrillingRecord record)
+std::string check_record(DrillingRecord record)
+{ 
+	if (drillingArray->getSize() > 0)
+	{
+		// check date
+		if (drillingArray->get(0).getString(0) != record.getString(0))
+		{
+			return INVALID_DATE;
+		}
+	}
+	// check data validity
+	if (!check_data(record))
+	{
+		print("Invalid floating-point data at line " + std::to_string(line_counter) + ".\n");
+		return INVALID_DATA;
+	}
+	// check timestamp
+	DrillingRecordComparator comparator(1);
+	long result = linearSearch(record, *drillingArray, comparator);
+	if (result >= 0)
+	{
+		// if (result >= file_starting_index_in_array)
+		// {
+		// 	drillingArray->replaceAt(record, result);
+		// 	return DUPLICATE_TIMESTAMP_DIFFERENT_FILE;
+		// }
+		print("Duplicate timestamp " + record.getString(1) + " at line " + std::to_string(line_counter) + ".\n");
+		return DUPLICATE_TIMESTAMP;
+	}
+	valid_records++;
+	return VALID_RECORD;
+}
+/**
+ * Returns true if the record float-point data is valid
+*/
+bool check_data(DrillingRecord record)
 {
 	for (unsigned int i = 0; i < 16; i++) 
 	{
@@ -333,14 +350,18 @@ bool checkdata(DrillingRecord record)
 	}
 	return true;
 }
-
-void insertrecord(DrillingRecord record)
+/**
+ * Inserts a record into the array
+*/
+void insert_record(DrillingRecord record)
 {
 	drillingArray->add(record);
-	storedrecords++;	
+	stored_records++;	
 }
-
-std::string printarray()
+/**
+ * Returns a string representation of the records array
+*/
+std::string print_array()
 {
 	std::ostringstream oSS;
 	for (unsigned long i = 0; i < drillingArray->getSize(); i++)
@@ -348,11 +369,12 @@ std::string printarray()
 		DrillingRecord record = drillingArray->get(i);
 		oSS << record << "\n";
 	}
-	oSS << "Data lines read: " << datalinesread << "; Valid drilling records read: " << validrecords << "; Drilling records in memory: " << storedrecords << "\n";
+	oSS << "Data lines read: " << data_lines_read << "; Valid drilling records read: " << valid_records << "; Drilling records in memory: " << stored_records << "\n";
 	return oSS.str();
 }
-
-
+/**
+ * prints a string to cout
+*/
 void print(std::string output)
 {
 	std::cout << output;
