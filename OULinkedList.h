@@ -84,7 +84,10 @@ bool OULinkedList<T>::insert(T item)
     if (size == 0)
     {
         first = new OULink(item);
+        last = first;
         first.next = last;
+        last.next = NULL;
+        size++;
         return true;
     }
     OULinkedListEnumerator<T> enumerator(first); 
@@ -93,12 +96,14 @@ bool OULinkedList<T>::insert(T item)
     {
         if (enumerator.hasNext())
         {
-            long result = comparator.compare(item, enumerator.current.data);
+            OULink<T>* current = enumerator.next();
+            long result = comparator.compare(item, current.data);
             if (result < 0)
             {
                 OULink<T>* newLink = new OULink<T>(item);
                 previous.next = newLink;
-                newLink.next = enumerator.current;
+                newLink.next = current;
+                size++;
                 return true;
             }
             else if (result == 0)
@@ -107,81 +112,247 @@ bool OULinkedList<T>::insert(T item)
             }
             else if (result > 0)
             {
-                previous = enumerator.current;
+                previous = current;
                 continue;
             }
         }
         else 
         {
             enumerator.current.next = new OULink(item);
+            size++;
+            return true;
         }        
     }
+    return false;
 }
 
 template <typename T>
 bool OULinkedList<T>::append(T item)
 {
-    
+    if (first == nullptr)
+    {
+        first = new OULink<T>(item);
+        last = first;
+        first.next = last;
+        size++;
+        return true;
+    }
+    long result = comparator.compare(item, last.data);
+    if (result > 0)
+    {
+        OULink<T>* newItem = new OULink<T>(item);
+        last.next = newItem;
+        last = newItem;
+        last.next = nullptr;
+        size++;
+        return true;
+    }
+    return false;
 }
 
 template <typename T>
 bool OULinkedList<T>::replace(T item)
 {
-    
+    OULinkedListEnumerator<T> enumerator(first);
+    while (enumerator.hasNext())
+    {
+        long result = comparator.compare(item, enumerator.current.data);
+        if (reult < 0)
+        {
+            return false;
+        }
+        else if (result == 0)
+        {
+            enumerator.next().data = item;
+            return true;
+        }
+        enumerator.next();
+    }
+    return false;
 }
 
 template <typename T>
 bool OULinkedList<T>::remove(T item)
 {
+    OULinkedListEnumerator<T> enumerator(first);
+    OULink<T>* previous;
+    if (enumerator.hasNext())
+    {
+        previous = enumerator.current;
+        enumerator.next();
+    }
+    else
+    {
+        long result = comparator.compare(item, enumerator.current.data);
+        if (result == 0)
+        {
+            OULink<T>* temp = first;
+            first = nullptr;
+            delete temp;
+            size--;
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
     
+    while (enumerator.hasNext())
+    {
+        long result = comparator.compare(item, enumerator.current.data);
+        if (reult < 0)
+        {
+            return false;
+        }
+        else if (result == 0)
+        {
+            OULink<T>* tempToRemove = enumerator.current;
+            if (enumerator.hasNext())
+            {
+                previous.next = enumerator.next();
+            }
+            else
+            {
+                previous.next = nullptr;
+                last = previous;
+            }
+            delete tempToRemove;
+            return true;
+        }
+        enumerator.next();
+    }
+    return false;
 }
 
 template <typename T>
 T OULinkedList<T>::getFirst() const
 {
-    
+    if (first == nullptr)
+    {
+        throw new ExceptionLinkedListAccess();
+    }
+    else 
+    {
+        return first.data;
+    }
 }
 
 template <typename T>
 T OULinkedList<T>::pullFirst()
 {
-
+    if (first == nullptr)
+    {
+        throw new ExceptionLinkedListAccess();
+    }
+    else 
+    {
+        OULink<T>* tempLink = first;
+        if (first.next != nullptr)
+        {
+            first = first.next;
+        }
+        else
+        {
+            first = nullptr;
+        }
+        T tempItem = tempLink.data;
+        delete tempLink;
+        size--;
+        return tempItem;
+    }
 }
 
 template <typename T>
 bool OULinkedList<T>::removeFirst()
 {
-
+    if (first == nullptr)
+    {
+        throw new ExceptionLinkedListAccess();
+    }
+    else 
+    {
+        OULink<T>* tempLink = first;
+        if (first.next != nullptr)
+        {
+            first = first.next;
+        }
+        else
+        {
+            first = nullptr;
+        }
+        delete tempLink;
+        size--;
+        return true;
+    }
+    return false;
 }
 
 template <typename T>
 bool OULinkedList<T>::contains(T item) const
 {
-    
+    if (first == nullptr)
+    {
+        return false;
+    }
+    OULinkedListEnumerator<T> enumerator(first);
+    while (enumerator.hasNext())
+    {
+        long result = comparator.compare(item, enumerator.current.data);
+        if (reult < 0)
+        {
+            return false;
+        }
+        else if (result == 0)
+        {
+            return true;
+        }
+        enumerator.next();
+    }
+    return false;
 }
 
 template <typename T>
 T OULinkedList<T>::find(T item) const
 {
-
+    if (first == nullptr)
+    {
+        throw new ExceptionLinkedListAccess();
+    }
+    OULinkedListEnumerator<T> enumerator(first);
+    while (enumerator.hasNext())
+    {
+        long result = comparator.compare(item, enumerator.current.data);
+        if (reult < 0)
+        {
+            throw new ExceptionLinkedListAccess();
+        }
+        else if (result == 0)
+        {
+            return enumerator.current.data;
+        }
+        enumerator.next();
+    }
+    throw new ExceptionLinkedListAccess();
 }
 
 template <typename T>
 void OULinkedList<T>::clear()
 {
-
+    delete first;
 }
 
 template <typename T>
 unsigned long OULinkedList<T>::getSize() const
 {
-
+    return size;
 }
 
 template <typename T>
 OULinkedListEnumerator<T> OULinkedList<T>::enumerator() const
 {
-
+    OULinkedListEnumerator<T> enumerator(first);
+    return enumerator;
 }
 
 #endif // !OU_LINKED_LIST

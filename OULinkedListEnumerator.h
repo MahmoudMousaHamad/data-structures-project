@@ -18,5 +18,45 @@ public:
 
 // Add your implementation below this line. Do not add or modify anything above this line.
 
+template <typename T>
+OULinkedListEnumerator<T>::OULinkedListEnumerator(OULink<T>* first)
+{
+	current = first;
+	current.next = nullptr;
+}
+
+template <typename T>
+bool OULinkedListEnumerator<T>::hasNext() const
+{
+	return current.next != nullptr;
+}
+
+template <typename T>
+T OULinkedListEnumerator<T>::next()
+{
+	if (current.next == nullptr)
+	{
+		throw new ExceptionEnumerationBeyondEnd();
+	}
+	else 
+	{
+		OULink<T>* temp = current.next;
+		current = current.next;
+		return temp;
+	}
+}
+
+template <typename T>
+T OULinkedListEnumerator<T>::peak() const
+{
+	if (current.next == nullptr)
+	{
+		throw new ExceptionEnumerationBeyondEnd();
+	}
+	else 
+	{
+		return current.next;
+	}
+}
 
 #endif // !OU_LINKED_LIST_ENUMERATOR

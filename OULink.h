@@ -17,6 +17,16 @@ public:
 
 // Add your implementation below this line. Do not add or modify anything above this line.
 
+template <typename T>
+OULink<T>::OULink(T item)
+{
+    this.data = item;
+}
 
+template <typename T>
+OULink<T>::~OULink()
+{
+    delete next;
+}
 
 #endif // !OU_LINK
