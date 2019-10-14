@@ -2,6 +2,9 @@
 #define RESIZABLE_ARRAY_H
 
 #include "Exceptions.h"
+#include "OULink.h"
+#include "OULinkedList.h"
+#include "OULinkedListEnumerator.h"
 
 const unsigned long DEFAULT_ARRAY_CAPACITY = 10;        // capacity used in no arg constructor
 
@@ -16,6 +19,7 @@ private:
 public:
     ResizableArray();                                   // constructs array with default capacity
     ResizableArray(unsigned long capacity);             // constructs array with specified capacity
+    ResizableArray(const OULinkedList<T>& linkedList);         // constructs array from OULinkedList
     virtual ~ResizableArray();                          // frees array space as object is deleted
     void add(T item);                                   // adds item, increments size, doubles capacity as necessary
     
@@ -44,6 +48,19 @@ ResizableArray<T>::ResizableArray(unsigned long capacity)
 {
 	this->capacity = capacity;
 	this->data = new T[capacity];
+}
+
+template <typename T>
+ResizableArray<T>::ResizableArray(const OULinkedList<T>& linkedList) 
+{
+	this->capacity = linkedList->getSize();
+	this->data = new T[capacity];
+    OULinkedListEnumerator<T> enumerator = linkedList.enumerator();
+    while (enumerator.hasNext())
+    {
+        this->add(enumerator.current);
+        enumerator.next();
+    }
 }
 
 template <typename T>

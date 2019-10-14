@@ -340,6 +340,7 @@ template <typename T>
 void OULinkedList<T>::clear()
 {
     delete first;
+    size = 0;
 }
 
 template <typename T>

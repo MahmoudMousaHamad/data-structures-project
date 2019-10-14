@@ -42,7 +42,7 @@ T OULinkedListEnumerator<T>::next()
 	{
 		OULink<T>* temp = current.next;
 		current = current.next;
-		return temp;
+		return temp.data;
 	}
 }
 
@@ -55,7 +55,7 @@ T OULinkedListEnumerator<T>::peak() const
 	}
 	else 
 	{
-		return current.next;
+		return current.next.data;
 	}
 }
 
