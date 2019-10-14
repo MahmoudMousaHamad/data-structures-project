@@ -28,6 +28,7 @@ public:
     
     unsigned long getSize() const;                      // returns number of items currently in array
     unsigned long getCapacity() const;                  // returns the current capacity of the array
+    void clear();                                       // removes all items from array, resets to default capacity, set size to 0
 };
 
 // Add your implementation below this line. Do not add or modify anything above this line.

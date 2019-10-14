@@ -19,6 +19,7 @@ const std::string DUPLICATE_TIMESTAMP = "DUPLICATE_TIMESTAMP";
 const std::string DUPLICATE_TIMESTAMP_DIFFERENT_FILE = "DUPLICATE_TIMESTAMP_DIFFERENT_FILE";
 const std::string INVALID_DATA = "INVALID_DATA";
 const std::string VALID_RECORD = "VALID_RECORD";
+const std::string MENUE = "Enter (o)utput, (s)ort, (f)ind, (m)erge, (p)urge, (r)ecords, or (q)uit: \n";
 // Counters and flags
 long file_starting_index_in_array = 0;
 unsigned long line_counter = 0;
@@ -61,7 +62,7 @@ void data_manipulation_loop()
 	std::string userinput;
 	do
 	{
-		print("Enter (o)utput, (s)ort, (f)ind, or (q)uit: \n");
+		print(MENU);
 		std::cin >> userinput;
 		if (userinput.empty())
 		{
@@ -78,6 +79,18 @@ void data_manipulation_loop()
 		else if (userinput == "f")
 		{
 			find();
+		}
+		else if (userinput == "m")
+		{
+			merge();
+		}
+		else if (userinput == "p")
+		{
+			purge();
+		}
+		else if (userinput == "r")
+		{
+			records();
 		}
 		else if (userinput == "q")
 		{
