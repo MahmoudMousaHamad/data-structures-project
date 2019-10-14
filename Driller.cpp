@@ -11,17 +11,14 @@
 
 // Resizable array that stores the records
 ResizableArray<DrillingRecord>* drillingArray;
-// Resizable array used to keep track of input file names to ensure no duplicates
-ResizableArray<std::string>* file_names_array;
 // Constants
 const std::string INVALID_DATE = "INVALID_DATE";
 const std::string DUPLICATE_TIMESTAMP = "DUPLICATE_TIMESTAMP";
 const std::string DUPLICATE_TIMESTAMP_DIFFERENT_FILE = "DUPLICATE_TIMESTAMP_DIFFERENT_FILE";
 const std::string INVALID_DATA = "INVALID_DATA";
 const std::string VALID_RECORD = "VALID_RECORD";
-const std::string MENUE = "Enter (o)utput, (s)ort, (f)ind, (m)erge, (p)urge, (r)ecords, or (q)uit: \n";
 // Counters and flags
-long file_starting_index_in_array = 0;
+long file_ending_index_in_array = 0; // Marks the end of the previous file in the array
 unsigned long line_counter = 0;
 unsigned long data_lines_read;
 unsigned long valid_records;
@@ -36,22 +33,17 @@ std::string check_record(DrillingRecord record);
 bool check_data(DrillingRecord record);
 void insert_record(DrillingRecord record);
 void print(std::string output);
+void sort_array(int column_num);
+DrillingRecord get_record_to_find(int column_num);
 void output();
 void quit();
 void sort();
 void find();
-bool duplicate_file_name(std::string filename);
 
 int main()
 {
 	input_loop();
-	if (drillingArray->getSize() > 0)
-	{
-		DrillingRecordComparator comparator(1);	
-		Sorter<DrillingRecord>::sort(*drillingArray, comparator);
-		sort_column = 1;
-		data_manipulation_loop();
-	}
+	data_manipulation_loop();
 	return 0;
 }
 /**
@@ -59,44 +51,21 @@ int main()
 */
 void data_manipulation_loop()
 {
-	std::string userinput;
+	if (drillingArray->getSize() == 0) return;
+	sort_array(1);
 	do
 	{
-		print(MENU);
+		std::string userinput;
+		print("Enter (o)utput, (s)ort, (f)ind, or (q)uit: \n");
 		std::cin >> userinput;
-		if (userinput.empty())
-		{
-			continue;
-		}
-		else if (userinput == "o")
-		{
-			output();
-		}
-		else if (userinput == "s")
-		{
-			sort();
-		}
-		else if (userinput == "f")
-		{
-			find();
-		}
-		else if (userinput == "m")
-		{
-			merge();
-		}
-		else if (userinput == "p")
-		{
-			purge();
-		}
-		else if (userinput == "r")
-		{
-			records();
-		}
-		else if (userinput == "q")
-		{
-			quit();
-			break;
-		}
+		if (userinput.empty()) continue;
+		else if (userinput == "o") output();
+		else if (userinput == "s") sort();
+		else if (userinput == "f") find();
+		else if (userinput == "m") merge();
+		else if (userinput == "p") purge();
+		else if (userinput == "r") records();
+		else if (userinput == "q") { quit(); break; }
 	} while (true);
 }
 /**
@@ -105,10 +74,8 @@ void data_manipulation_loop()
 void sort()
 {
 	unsigned int columnnum;
-	std::cin >> columnnum; 
-	DrillingRecordComparator comparator(columnnum);	
-	Sorter<DrillingRecord>::sort(*drillingArray, comparator);
-	sort_column = columnnum;
+	std::cin >> columnnum;
+	sort_array(columnnum);
 }
 /**
  * Quits the program
@@ -155,23 +122,11 @@ void output()
 void find()
 {
 	unsigned int columnnum;
-	double floatvalue;
-	std::string strvalue;
 	long firstindex;
 	int recordsfoundcounter = 0;
 	std::cin >> columnnum;
 	DrillingRecordComparator comparator(columnnum);
-	DrillingRecord record;
-	if (columnnum >= 2)
-	{
-		std::cin >> floatvalue;
-		record.setNum(floatvalue, columnnum - 2);
-	}
-	else
-	{
-		std::cin >> strvalue;
-		record.setString(strvalue, columnnum);
-	}
+	DrillingRecord record = get_record_to_find(columnnum);
 	if (sort_column == columnnum)
 	{
 		firstindex = binarySearch(record, *drillingArray, comparator);		
@@ -205,15 +160,14 @@ void find()
 */
 void input_loop()
 {
-	drillingArray = new ResizableArray<DrillingRecord>();
-	if (drillingArray == nullptr)
+	try
 	{
-		throw new ExceptionMemoryNotAvailable();
+		drillingArray = new ResizableArray<DrillingRecord>();
 	}
-	file_names_array = new ResizableArray<std::string>(); 
-	if (file_names_array == nullptr)
+	catch(ExceptionMemoryNotAvailable* e)
 	{
-		throw new ExceptionMemoryNotAvailable();
+		print("Not enough memory.\n");
+		delete e;
 	}
 	while (true)
 	{
@@ -226,22 +180,16 @@ void input_loop()
 		std::getline(std::cin, filename);
 		// exit input loop if user inputs nothin
 		if (filename.empty()) break;
-		if (duplicate_file_name(filename))
-		{
-			print("Duplicate data file.\n");
-			break;
-		}
 		std::ifstream datafile(filename);
 		if (datafile.good())
 		{
-			file_starting_index_in_array = drillingArray->getSize();
 			std::getline(datafile, line);
 			while (std::getline(datafile, line))
 			{
 				read_line(line, datafile);
 			}
-			file_names_array->add(filename);
 			datafile.close();
+			file_ending_index_in_array = drillingArray->getSize() - 1;
 		}
 		else 
 		{
@@ -292,24 +240,6 @@ void read_line(std::string line, std::ifstream& datafile)
 	}
 }
 /**
- * Returns whether the current file has already been read
-*/
-bool duplicate_file_name(std::string filename)
-{
-	if (file_names_array->getSize() == 0)
-	{
-		return false;
-	}
-	for (unsigned long i = 0; i < file_names_array->getSize() - 1; ++i)
-	{
-		if (filename.compare(file_names_array->get(i)) == 0)
-		{
-			return true;
-		}
-	}
-	return false;
-}
-/**
  * Checks the validity of a DrillingRecord object
 */
 std::string check_record(DrillingRecord record)
@@ -333,11 +263,12 @@ std::string check_record(DrillingRecord record)
 	long result = linearSearch(record, *drillingArray, comparator);
 	if (result >= 0)
 	{
-		// if (result >= file_starting_index_in_array)
-		// {
-		// 	drillingArray->replaceAt(record, result);
-		// 	return DUPLICATE_TIMESTAMP_DIFFERENT_FILE;
-		// }
+		if (result <= file_ending_index_in_array && file_ending_index_in_array != 0)
+		{
+			valid_records++;
+			drillingArray->replaceAt(record, result);
+			return DUPLICATE_TIMESTAMP_DIFFERENT_FILE;
+		}
 		print("Duplicate timestamp " + record.getString(1) + " at line " + std::to_string(line_counter) + ".\n");
 		return DUPLICATE_TIMESTAMP;
 	}
@@ -357,6 +288,35 @@ bool check_data(DrillingRecord record)
 		}
 	}
 	return true;
+}
+/**
+ * Sorts array according to column number
+*/
+void sort_array(int column_num)
+{
+	DrillingRecordComparator comparator(column_num);	
+	Sorter<DrillingRecord>::sort(*drillingArray, comparator);
+	sort_column = column_num;
+}
+/**
+ * Returns a DrillingRecord object that needs to be found in the array
+*/
+DrillingRecord get_record_to_find(int column_num)
+{
+	double floatvalue;
+	std::string strvalue;
+	DrillingRecord record;
+	if (column_num >= 2)
+	{
+		std::cin >> floatvalue;
+		record.setNum(floatvalue, column_num - 2);
+	}
+	else
+	{
+		std::cin >> strvalue;
+		record.setString(strvalue, column_num);
+	}
+	return record;
 }
 /**
  * Inserts a record into the array
