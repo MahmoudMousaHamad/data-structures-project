@@ -44,7 +44,7 @@ ResizableArray<T>::ResizableArray()
 }
 
 template <typename T>
-ResizableArray<T>::ResizableArray(unsigned long capacity) 
+ResizableArray<T>::ResizableArray(unsigned long capacity)
 {
 	this->capacity = capacity;
 	this->data = new T[capacity];
@@ -53,12 +53,12 @@ ResizableArray<T>::ResizableArray(unsigned long capacity)
 template <typename T>
 ResizableArray<T>::ResizableArray(const OULinkedList<T>& linkedList) 
 {
-	this->capacity = linkedList->getSize();
+	this->capacity = linkedList.getSize();
 	this->data = new T[capacity];
     OULinkedListEnumerator<T> enumerator = linkedList.enumerator();
     while (enumerator.hasNext())
     {
-        this->add(enumerator.current);
+        this->add(enumerator.currentItem());
         enumerator.next();
     }
 }

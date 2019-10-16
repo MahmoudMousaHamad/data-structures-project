@@ -2,10 +2,11 @@
 #define OU_LINK_H
 
 template <typename T>
-class OULink {
-    template <typename T>
+class OULink 
+{
+    template <typename U>
     friend class OULinkedList;
-    template <typename T>
+    template <typename U>
     friend class OULinkedListEnumerator;
 private:
     T data{};                  // data item of any type
@@ -20,7 +21,7 @@ public:
 template <typename T>
 OULink<T>::OULink(T item)
 {
-    this.data = item;
+    this->data = item;
 }
 
 template <typename T>

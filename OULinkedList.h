@@ -67,15 +67,15 @@ public:
 // Add your implementation below this line. Do not add or modify anything above this line.
 
 template <typename T>
-OULinkedList<T>::OULinkedList(Comparator<T> comparator)
+OULinkedList<T>::OULinkedList(Comparator<T>* comparator)
 {
-    this.comparator = comparator;
+    this->comparator = comparator;
 }
 
 template <typename T>
 OULinkedList<T>::~OULinkedList()
 {
-    delete this.first;
+    delete this->first;
 }
 
 template <typename T>
@@ -83,10 +83,10 @@ bool OULinkedList<T>::insert(T item)
 {
     if (size == 0)
     {
-        first = new OULink(item);
+        first = new OULink<T>(item);
         last = first;
-        first.next = last;
-        last.next = NULL;
+        first->next = last;
+        last->next = NULL;
         size++;
         return true;
     }
@@ -96,13 +96,17 @@ bool OULinkedList<T>::insert(T item)
     {
         if (enumerator.hasNext())
         {
-            OULink<T>* current = enumerator.next();
-            long result = comparator.compare(item, current.data);
+            OULink<T>* current = enumerator.current;
+            long result = comparator->compare(item, current->data);
             if (result < 0)
             {
                 OULink<T>* newLink = new OULink<T>(item);
-                previous.next = newLink;
-                newLink.next = current;
+                newLink->next = current;
+                if (previous != nullptr)
+                {
+                    previous->next = newLink;
+                    newLink->next = current;
+                }
                 size++;
                 return true;
             }
@@ -113,12 +117,13 @@ bool OULinkedList<T>::insert(T item)
             else if (result > 0)
             {
                 previous = current;
+                enumerator.next();
                 continue;
             }
         }
         else 
         {
-            enumerator.current.next = new OULink(item);
+            enumerator.current->next = new OULink<T>(item);
             size++;
             return true;
         }        
@@ -133,7 +138,7 @@ bool OULinkedList<T>::append(T item)
     {
         first = new OULink<T>(item);
         last = first;
-        first.next = last;
+        first->next = last;
         size++;
         return true;
     }
@@ -141,9 +146,9 @@ bool OULinkedList<T>::append(T item)
     if (result > 0)
     {
         OULink<T>* newItem = new OULink<T>(item);
-        last.next = newItem;
+        last->next = newItem;
         last = newItem;
-        last.next = nullptr;
+        last->next = nullptr;
         size++;
         return true;
     }
@@ -156,14 +161,14 @@ bool OULinkedList<T>::replace(T item)
     OULinkedListEnumerator<T> enumerator(first);
     while (enumerator.hasNext())
     {
-        long result = comparator.compare(item, enumerator.current.data);
-        if (reult < 0)
+        long result = comparator.compare(item, enumerator.current->data);
+        if (result < 0)
         {
             return false;
         }
         else if (result == 0)
         {
-            enumerator.next().data = item;
+            enumerator.current->data = item;
             return true;
         }
         enumerator.next();
@@ -183,7 +188,7 @@ bool OULinkedList<T>::remove(T item)
     }
     else
     {
-        long result = comparator.compare(item, enumerator.current.data);
+        long result = comparator.compare(item, enumerator.current->data);
         if (result == 0)
         {
             OULink<T>* temp = first;
@@ -200,8 +205,8 @@ bool OULinkedList<T>::remove(T item)
     
     while (enumerator.hasNext())
     {
-        long result = comparator.compare(item, enumerator.current.data);
-        if (reult < 0)
+        long result = comparator.compare(item, enumerator.current->data);
+        if (result < 0)
         {
             return false;
         }
@@ -298,8 +303,8 @@ bool OULinkedList<T>::contains(T item) const
     OULinkedListEnumerator<T> enumerator(first);
     while (enumerator.hasNext())
     {
-        long result = comparator.compare(item, enumerator.current.data);
-        if (reult < 0)
+        long result = comparator.compare(item, enumerator.current->data);
+        if (result < 0)
         {
             return false;
         }
@@ -322,14 +327,14 @@ T OULinkedList<T>::find(T item) const
     OULinkedListEnumerator<T> enumerator(first);
     while (enumerator.hasNext())
     {
-        long result = comparator.compare(item, enumerator.current.data);
-        if (reult < 0)
+        long result = comparator.compare(item, enumerator.current->data);
+        if (result < 0)
         {
             throw new ExceptionLinkedListAccess();
         }
         else if (result == 0)
         {
-            return enumerator.current.data;
+            return enumerator.current->data;
         }
         enumerator.next();
     }
