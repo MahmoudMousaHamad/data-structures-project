@@ -27,13 +27,23 @@ template <typename T>
 OULinkedListEnumerator<T>::OULinkedListEnumerator(OULink<T>* first)
 {
 	current = first;
-	current->next = nullptr;
 }
 
 template <typename T>
 bool OULinkedListEnumerator<T>::hasNext() const
 {
-	return current->next != nullptr;
+	if (current == nullptr)
+	{
+		return false;
+	}
+	else if (current->next == nullptr) 
+	{
+		return false;
+	}
+	else
+	{
+		return true;
+	} 
 }
 
 template <typename T>

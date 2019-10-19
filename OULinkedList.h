@@ -10,8 +10,8 @@
 // items (that is, duplicates are not allowed)
 template <typename T>
 class OULinkedList {
-    //template <typename T>
-    //friend class OULinkedListEnumerator;
+    template <typename U>
+    friend class OULinkedListEnumerator;
 private:
     Comparator<T>* comparator = NULL;               // used to determine list order and item equality
     unsigned long size = 0;                         // actual number of items currently in list
@@ -81,54 +81,44 @@ OULinkedList<T>::~OULinkedList()
 template <typename T>
 bool OULinkedList<T>::insert(T item)
 {
-    if (size == 0)
+    if (first == nullptr)
     {
         first = new OULink<T>(item);
-        last = first;
-        first->next = last;
-        last->next = NULL;
-        size++;
+        this->size++;
         return true;
     }
-    OULinkedListEnumerator<T> enumerator(first); 
-    OULink<T>* previous = NULL;
-    for (unsigned long i = 0; i < size; i++)
+    OULink<T>* previous = nullptr;
+    OULink<T>* current = first;
+    while (current->next != nullptr)
     {
-        if (enumerator.hasNext())
+        long result = comparator->compare(item, current->data);
+        if (result < 0)
         {
-            OULink<T>* current = enumerator.current;
-            long result = comparator->compare(item, current->data);
-            if (result < 0)
+            OULink<T>* newLink = new OULink<T>(item);
+            newLink->next = current;
+            if (previous != nullptr)
             {
-                OULink<T>* newLink = new OULink<T>(item);
+                previous->next = newLink;
                 newLink->next = current;
-                if (previous != nullptr)
-                {
-                    previous->next = newLink;
-                    newLink->next = current;
-                }
-                size++;
-                return true;
             }
-            else if (result == 0)
-            {
-                return false;
-            }
-            else if (result > 0)
-            {
-                previous = current;
-                enumerator.next();
-                continue;
-            }
-        }
-        else 
-        {
-            enumerator.current->next = new OULink<T>(item);
             size++;
             return true;
-        }        
+        }
+        else if (result == 0)
+        {
+            return false;
+        }
+        else if (result > 0)
+        {
+            previous = current;
+            current = current->next;
+            continue;
+        }
     }
-    return false;
+    OULink<T>* new_link = new OULink<T>(item);
+    current->next = new_link;
+    size++;
+    return true;
 }
 
 template <typename T>
@@ -161,7 +151,7 @@ bool OULinkedList<T>::replace(T item)
     OULinkedListEnumerator<T> enumerator(first);
     while (enumerator.hasNext())
     {
-        long result = comparator.compare(item, enumerator.current->data);
+        long result = comparator->compare(item, enumerator.current->data);
         if (result < 0)
         {
             return false;
@@ -239,7 +229,7 @@ T OULinkedList<T>::getFirst() const
     }
     else 
     {
-        return first.data;
+        return first->data;
     }
 }
 
@@ -345,13 +335,13 @@ template <typename T>
 void OULinkedList<T>::clear()
 {
     delete first;
-    size = 0;
+    this->size = 0;
 }
 
 template <typename T>
 unsigned long OULinkedList<T>::getSize() const
 {
-    return size;
+    return this->size;
 }
 
 template <typename T>

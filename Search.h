@@ -14,7 +14,7 @@ long binarySearch(const T& item, const ResizableArray<T>& array, const Comparato
     unsigned long left = 0;
     unsigned long right = array.getSize() - 1;
     unsigned long mid;
-    while (right > left)
+    while (left <= right)
     {
         mid = (left + right) / 2;
         int result = comparator.compare(item, array[mid]);
@@ -35,13 +35,11 @@ long binarySearch(const T& item, const ResizableArray<T>& array, const Comparato
         }
         else if (result > 0)
         {
-            left = mid;
-            continue;
+            left = mid + 1;
         }
         else
         {
-            right = mid;
-            continue;
+            right = mid - 1;
         }
     }
     return (mid + 1) * -1;

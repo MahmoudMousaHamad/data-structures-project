@@ -246,7 +246,7 @@ OULinkedList<DrillingRecord>* read_file()
 				read_line(line, datafile, *tempLinkedList);
 			}
 			datafile.close();
-			file_ending_index_in_array = drillingArray->getSize() - 1;
+			file_ending_index_in_array = tempLinkedList->getSize() - 1;
 			if (file_ending_index_in_array < 0)
 			{
 				print("No valid records found.\n");
@@ -308,10 +308,10 @@ void read_line(std::string line, std::ifstream& datafile, OULinkedList<DrillingR
 */
 std::string check_record(DrillingRecord record)
 { 
-	if (drillingArray->getSize() > 0)
+	if (drillingLinkedList->getSize() > 0)
 	{
 		// check date
-		if (drillingArray->get(0).getString(0) != record.getString(0))
+		if (drillingLinkedList->getFirst().getString(0) != record.getString(0))
 		{
 			return INVALID_DATE;
 		}
@@ -323,24 +323,30 @@ std::string check_record(DrillingRecord record)
 		return INVALID_DATA;
 	}
 	// check timestamp
-	DrillingRecordComparator comparator(1);
-	long result = linearSearch(record, *drillingArray, comparator);
-	if (result >= 0)
+	OULinkedListEnumerator<DrillingRecord> enumerator = drillingLinkedList->enumerator();
+	// std::cout << "Size: " << drillingLinkedList->getSize();
+	// std::cout << " Has Next? " << enumerator.hasNext() << "\n";
+	long counter = 0;
+	while (enumerator.hasNext())
 	{
-		if (result <= file_ending_index_in_array && file_ending_index_in_array != 0)
+		if (enumerator.next().getString(1).compare(record.getString(1)) == 0)
 		{
-			valid_records++;
-			drillingArray->replaceAt(record, result);
-			return DUPLICATE_TIMESTAMP_DIFFERENT_FILE;
+			if (counter < file_ending_index_in_array && file_ending_index_in_array > 0)
+			{
+				valid_records++;
+				drillingLinkedList->replace(record);
+				return DUPLICATE_TIMESTAMP_DIFFERENT_FILE;
+			}
+			print("Duplicate timestamp " + record.getString(1) + " at line " + std::to_string(line_counter) + ".\n");
+			return DUPLICATE_TIMESTAMP;
 		}
-		print("Duplicate timestamp " + record.getString(1) + " at line " + std::to_string(line_counter) + ".\n");
-		return DUPLICATE_TIMESTAMP;
+		counter++;
 	}
 	valid_records++;
 	return VALID_RECORD;
 }
 /**
- * Returns true if the record float-point data is valid
+ * Returns true if the record's float-point data is valid
 */
 bool check_data(DrillingRecord record)
 {
