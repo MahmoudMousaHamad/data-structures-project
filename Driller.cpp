@@ -252,6 +252,10 @@ OULinkedList<DrillingRecord>* read_file()
 				print("No valid records found.\n");
 				continue;
 			}
+			else 
+			{
+				break;
+			}
 		}
 		else 
 		{
