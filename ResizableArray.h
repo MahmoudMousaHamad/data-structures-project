@@ -56,10 +56,10 @@ ResizableArray<T>::ResizableArray(const OULinkedList<T>& linkedList)
 	this->capacity = linkedList.getSize();
 	this->data = new T[capacity];
     OULinkedListEnumerator<T> enumerator = linkedList.enumerator();
+    this->add(linkedList.getFirst());
     while (enumerator.hasNext())
     {
-        this->add(enumerator.currentItem());
-        enumerator.next();
+        this->add(enumerator.next());
     }
 }
 

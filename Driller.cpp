@@ -22,6 +22,7 @@ const std::string DUPLICATE_TIMESTAMP = "DUPLICATE_TIMESTAMP";
 const std::string DUPLICATE_TIMESTAMP_DIFFERENT_FILE = "DUPLICATE_TIMESTAMP_DIFFERENT_FILE";
 const std::string INVALID_DATA = "INVALID_DATA";
 const std::string VALID_RECORD = "VALID_RECORD";
+const std::string MENU = "Enter (o)utput, (s)ort, (f)ind, (m)erge, (p)urge, (r)ecords, or (q)uit: ";
 // Counters and flags
 long file_ending_index_in_array = 0; // Marks the end of the previous file in the array
 unsigned long line_counter = 0;
@@ -89,7 +90,7 @@ void data_manipulation_loop()
 	do
 	{
 		std::string userinput;
-		print("Enter (o)utput, (s)ort, (f)ind, or (q)uit: \n");
+		print(MENU);
 		std::cin >> userinput;
 		if (userinput.empty()) continue;
 		else if (userinput == "o") output();
@@ -105,12 +106,10 @@ void data_manipulation_loop()
 void merge()
 {
 	OULinkedList<DrillingRecord>* list_to_merege = read_file();
-	OULinkedListEnumerator<DrillingRecord> enumerator_master = drillingLinkedList->enumerator();
 	OULinkedListEnumerator<DrillingRecord> enumerator_to_merge = list_to_merege->enumerator();
-	while (enumerator_master.hasNext() && enumerator_to_merge.hasNext())
+	while (enumerator_to_merge.hasNext())
 	{
-		drillingLinkedList->insert(enumerator_to_merge.currentItem());
-		enumerator_to_merge.next();
+		drillingLinkedList->insert(enumerator_to_merge.next());
 	}
 }
 
@@ -181,6 +180,7 @@ void find()
 	unsigned int columnnum;
 	long firstindex;
 	int recordsfoundcounter = 0;
+	print("Enter search field (0-17): ");
 	std::cin >> columnnum;
 	DrillingRecordComparator comparator(columnnum);
 	DrillingRecord record = get_record_to_find(columnnum);
@@ -300,6 +300,7 @@ void read_line(std::string line, std::ifstream& datafile, OULinkedList<DrillingR
 	if (recordvalidity == VALID_RECORD)
 	{
 		linkedList.insert(currentRecord);
+		stored_records++;	
 	}
 	else if (recordvalidity == INVALID_DATE)
 	{
@@ -382,11 +383,13 @@ DrillingRecord get_record_to_find(int column_num)
 	DrillingRecord record;
 	if (column_num >= 2)
 	{
+		print("Enter number on which to search: ");
 		std::cin >> floatvalue;
 		record.setNum(floatvalue, column_num - 2);
 	}
 	else
 	{
+		print("Enter exact text on which to search: ");
 		std::cin >> strvalue;
 		record.setString(strvalue, column_num);
 	}
@@ -398,7 +401,6 @@ DrillingRecord get_record_to_find(int column_num)
 void insert_record(DrillingRecord record)
 {
 	drillingLinkedList->insert(record);
-	stored_records++;	
 }
 /**
  * Returns a string representation of the records array
@@ -411,7 +413,7 @@ std::string print_array()
 		DrillingRecord record = drillingArray->get(i);
 		oSS << record << "\n";
 	}
-	oSS << "Data lines read: " << data_lines_read << "; Valid drilling records read: " << valid_records << "; Drilling records in memory: " << stored_records << "\n";
+	oSS << "Data lines read: " << data_lines_read << "; Valid Drilling records read: " << valid_records << "; Drilling records in memory: " << stored_records << "\n";
 	return oSS.str();
 }
 /**

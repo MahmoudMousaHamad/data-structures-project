@@ -9,8 +9,8 @@ class OULink
     template <typename U>
     friend class OULinkedListEnumerator;
 private:
-    T data{};                  // data item of any type
-    OULink* next = NULL;       // pointer to next link
+    T data{};                     // data item of any type
+    OULink* next = nullptr;       // pointer to next link
 public:
     OULink(T item);
     virtual ~OULink();

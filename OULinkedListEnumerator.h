@@ -12,13 +12,12 @@ class OULinkedListEnumerator : public Enumerator<T>
     template <typename U>
     friend class OULinkedListEnumerator;
 private:
-	OULink<T>* current;
+	OULink<T>* current = nullptr;
 public:
 	OULinkedListEnumerator(OULink<T>* first);
 	bool hasNext() const;
 	T next();			// throws ExceptionEnumerationBeyondEnd if no next item is available
 	T peek() const;		// throws ExceptionEnumerationBeyondEnd if no next item is available
-	T currentItem() const;
 };
 
 // Add your implementation below this line. Do not add or modify anything above this line.
@@ -49,7 +48,11 @@ bool OULinkedListEnumerator<T>::hasNext() const
 template <typename T>
 T OULinkedListEnumerator<T>::next()
 {
-	if (current->next == nullptr)
+	if (current == nullptr)
+	{
+		throw new ExceptionEnumerationBeyondEnd();		
+	}
+	else if (current->next == nullptr)
 	{
 		throw new ExceptionEnumerationBeyondEnd();
 	}
@@ -64,7 +67,11 @@ T OULinkedListEnumerator<T>::next()
 template <typename T>
 T OULinkedListEnumerator<T>::peek() const
 {
-	if (current->next == nullptr)
+	if (current == nullptr)
+	{
+		throw new ExceptionEnumerationBeyondEnd();		
+	}
+	else if (current->next == nullptr)
 	{
 		throw new ExceptionEnumerationBeyondEnd();
 	}
@@ -72,12 +79,6 @@ T OULinkedListEnumerator<T>::peek() const
 	{
 		return current->next->data;
 	}
-}
-
-template <typename T>
-T OULinkedListEnumerator<T>::currentItem() const
-{
-	return this->current->data;
 }
 
 #endif // !OU_LINKED_LIST_ENUMERATOR

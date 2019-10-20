@@ -13,10 +13,10 @@ class OULinkedList {
     template <typename U>
     friend class OULinkedListEnumerator;
 private:
-    Comparator<T>* comparator = NULL;               // used to determine list order and item equality
-    unsigned long size = 0;                         // actual number of items currently in list
-    OULink<T>* first = NULL;                        // pointer to first link in list
-    OULink<T>* last = NULL;                         // pointer to last link in list
+    Comparator<T>* comparator = nullptr;                // used to determine list order and item equality
+    unsigned long size = 0;                             // actual number of items currently in list
+    OULink<T>* first = nullptr;                         // pointer to first link in list
+    OULink<T>* last = nullptr;                          // pointer to last link in list
 public:
     OULinkedList(Comparator<T>* comparator);        // creates empty linked list with comparator
     virtual ~OULinkedList();                        // deletes all links and their data items
@@ -84,6 +84,7 @@ bool OULinkedList<T>::insert(T item)
     if (first == nullptr)
     {
         first = new OULink<T>(item);
+        last = first;
         this->size++;
         return true;
     }
@@ -108,7 +109,7 @@ bool OULinkedList<T>::insert(T item)
         {
             return false;
         }
-        else if (result > 0)
+        else
         {
             previous = current;
             current = current->next;
@@ -124,21 +125,20 @@ bool OULinkedList<T>::insert(T item)
 template <typename T>
 bool OULinkedList<T>::append(T item)
 {
+    OULink<T> *newLink = new OULink<T>(item);
     if (first == nullptr)
     {
-        first = new OULink<T>(item);
-        last = first;
-        first->next = last;
+        first = newLink;
+        last = newLink;
+        newLink = nullptr;
         size++;
         return true;
     }
-    long result = comparator.compare(item, last.data);
+    long result = comparator->compare(item, last->data);
     if (result > 0)
     {
-        OULink<T>* newItem = new OULink<T>(item);
-        last->next = newItem;
-        last = newItem;
-        last->next = nullptr;
+        last->next = newLink;
+        last = newLink;
         size++;
         return true;
     }
@@ -148,20 +148,21 @@ bool OULinkedList<T>::append(T item)
 template <typename T>
 bool OULinkedList<T>::replace(T item)
 {
-    OULinkedListEnumerator<T> enumerator(first);
-    while (enumerator.hasNext())
+    if (first == nullptr) return false;
+    OULink<T>* current = first;
+    while (current->next != nullptr)
     {
-        long result = comparator->compare(item, enumerator.current->data);
+        long result = comparator->compare(item, current->data);
         if (result < 0)
         {
             return false;
         }
         else if (result == 0)
         {
-            enumerator.current->data = item;
+            current->data = item;
             return true;
         }
-        enumerator.next();
+        current = current->next;
     }
     return false;
 }
@@ -169,53 +170,42 @@ bool OULinkedList<T>::replace(T item)
 template <typename T>
 bool OULinkedList<T>::remove(T item)
 {
-    OULinkedListEnumerator<T> enumerator(first);
-    OULink<T>* previous;
-    if (enumerator.hasNext())
+    if (first == nullptr) return false;
+    if (comparator->compare(item, first->data) == 0)
     {
-        previous = enumerator.current;
-        enumerator.next();
+        OULink<T>* tempLink = first;
+        first = nullptr;
+        delete tempLink;
     }
-    else
+    OULink<T>* current = first;
+    OULink<T>* previous = nullptr;
+    while (current->next != nullptr)
     {
-        long result = comparator.compare(item, enumerator.current->data);
+        long result = comparator->compare(item, current->data);
         if (result == 0)
         {
-            OULink<T>* temp = first;
-            first = nullptr;
-            delete temp;
-            size--;
+            if (previous != nullptr)
+            {
+                if (current == last)
+                {
+                    delete current;
+                    last = previous;
+                    return true; 
+                }
+                previous->next = current->next;
+            }
+            delete current;
             return true;
         }
-        else
-        {
-            return false;
-        }
+        previous = current;
+        current = current->next;
     }
-    
-    while (enumerator.hasNext())
+    if (comparator->compare(item, last->data) == 0)
     {
-        long result = comparator.compare(item, enumerator.current->data);
-        if (result < 0)
-        {
-            return false;
-        }
-        else if (result == 0)
-        {
-            OULink<T>* tempToRemove = enumerator.current;
-            if (enumerator.hasNext())
-            {
-                previous.next = enumerator.next();
-            }
-            else
-            {
-                previous.next = nullptr;
-                last = previous;
-            }
-            delete tempToRemove;
-            return true;
-        }
-        enumerator.next();
+        OULink<T>* tempLink = last;
+        last = current;
+        delete tempLink;
+        return true;
     }
     return false;
 }
@@ -243,15 +233,15 @@ T OULinkedList<T>::pullFirst()
     else 
     {
         OULink<T>* tempLink = first;
-        if (first.next != nullptr)
+        if (first->next != nullptr)
         {
-            first = first.next;
+            first = first->next;
         }
         else
         {
             first = nullptr;
         }
-        T tempItem = tempLink.data;
+        T tempItem = tempLink->data;
         delete tempLink;
         size--;
         return tempItem;
@@ -268,9 +258,9 @@ bool OULinkedList<T>::removeFirst()
     else 
     {
         OULink<T>* tempLink = first;
-        if (first.next != nullptr)
+        if (first->next != nullptr)
         {
-            first = first.next;
+            first = first->next;
         }
         else
         {
@@ -290,10 +280,10 @@ bool OULinkedList<T>::contains(T item) const
     {
         return false;
     }
-    OULinkedListEnumerator<T> enumerator(first);
-    while (enumerator.hasNext())
+    OULink<T>* current = first;
+    while (current->next != nullptr)
     {
-        long result = comparator.compare(item, enumerator.current->data);
+        long result = comparator->compare(item, current->data);
         if (result < 0)
         {
             return false;
@@ -302,7 +292,7 @@ bool OULinkedList<T>::contains(T item) const
         {
             return true;
         }
-        enumerator.next();
+        current = current->next();
     }
     return false;
 }
@@ -314,19 +304,19 @@ T OULinkedList<T>::find(T item) const
     {
         throw new ExceptionLinkedListAccess();
     }
-    OULinkedListEnumerator<T> enumerator(first);
-    while (enumerator.hasNext())
+    OULink<T>* current = first;
+    while (current->next != nullptr)
     {
-        long result = comparator.compare(item, enumerator.current->data);
+        long result = comparator->compare(item, current->data);
         if (result < 0)
         {
-            throw new ExceptionLinkedListAccess();
+            break;
         }
         else if (result == 0)
         {
-            return enumerator.current->data;
+            return current->data;
         }
-        enumerator.next();
+        current = current->next;
     }
     throw new ExceptionLinkedListAccess();
 }
