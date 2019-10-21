@@ -54,9 +54,8 @@ template <typename T>
 ResizableArray<T>::ResizableArray(const OULinkedList<T>& linkedList) 
 {
 	this->capacity = linkedList.getSize();
-	this->data = new T[capacity];
+	this->data = new T[100];
     OULinkedListEnumerator<T> enumerator = linkedList.enumerator();
-    this->add(linkedList.getFirst());
     while (enumerator.hasNext())
     {
         this->add(enumerator.next());
@@ -165,6 +164,14 @@ T ResizableArray<T>::operator[](unsigned long index) const
     
 	T record = data[index];
 	return record;
+}
+
+template <typename T>
+void ResizableArray<T>::clear()
+{
+    delete[] this->data;
+    size = 0;
+    this->capacity = 0;
 }
 
 template <typename T>

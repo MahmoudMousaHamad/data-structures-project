@@ -111,12 +111,18 @@ void merge()
 	{
 		drillingLinkedList->insert(enumerator_to_merge.next());
 	}
+	drillingArray = new ResizableArray<DrillingRecord>(*drillingLinkedList);
 }
 
 void purge()
 {
-	// OULinkedList<DrillingRecord>* list_to_purge = read_file();
-
+	OULinkedList<DrillingRecord>* list_to_purge = read_file();
+	OULinkedListEnumerator<DrillingRecord> enumerator_to_purge = list_to_purge->enumerator();
+	while (enumerator_to_purge.hasNext())
+	{
+		drillingLinkedList->remove(enumerator_to_purge.next());
+	}
+	drillingArray = new ResizableArray<DrillingRecord>(*drillingLinkedList);
 }
 
 void records()
@@ -155,20 +161,15 @@ void output()
 		if (std::cin.peek() == '\n')
 		{
 			std::cout << print_array();
-			break;
+			outputsuccessful = true;			
 		}
-		std::getline(std::cin, outputfilename);
+		std::cin >> outputfilename;
 		outputfile.open(outputfilename);
-		if (!outputfile.is_open())
+		if (outputfile.is_open())
 		{
-			continue;
-		}
-		else
-		{
-			outputsuccessful = true;
 			outputfile << print_array();
 			outputfile.close();
-			break;
+			outputsuccessful = true;
 		}
 	} while (!outputsuccessful);
 }
@@ -233,8 +234,9 @@ OULinkedList<DrillingRecord>* read_file()
 		line_counter = 0;
 		// prompt user for the name of a data file
 		print("Enter data file name: ");
+		std::cin.ignore();
 		// get file name from user
-		std::getline(std::cin, filename);
+		std::cin >> filename;
 		// exit input loop if user inputs nothin
 		if (filename.empty()) break;
 		std::ifstream datafile(filename);
@@ -329,8 +331,6 @@ std::string check_record(DrillingRecord record)
 	}
 	// check timestamp
 	OULinkedListEnumerator<DrillingRecord> enumerator = drillingLinkedList->enumerator();
-	// std::cout << "Size: " << drillingLinkedList->getSize();
-	// std::cout << " Has Next? " << enumerator.hasNext() << "\n";
 	long counter = 0;
 	while (enumerator.hasNext())
 	{
@@ -413,7 +413,7 @@ std::string print_array()
 		DrillingRecord record = drillingArray->get(i);
 		oSS << record << "\n";
 	}
-	oSS << "Data lines read: " << data_lines_read << "; Valid Drilling records read: " << valid_records << "; Drilling records in memory: " << stored_records << "\n";
+	oSS << "Data lines read: " << data_lines_read << "; Valid Drilling records read: " << valid_records << "; Drilling records in memory: " << drillingArray->getSize() << "\n";
 	return oSS.str();
 }
 /**

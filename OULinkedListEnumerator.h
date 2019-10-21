@@ -25,7 +25,8 @@ public:
 template <typename T>
 OULinkedListEnumerator<T>::OULinkedListEnumerator(OULink<T>* first)
 {
-	current = first;
+	current = new OULink<T>(first->data);
+	current->next = first;
 }
 
 template <typename T>
