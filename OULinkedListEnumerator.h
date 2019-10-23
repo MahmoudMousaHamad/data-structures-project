@@ -25,6 +25,7 @@ public:
 template <typename T>
 OULinkedListEnumerator<T>::OULinkedListEnumerator(OULink<T>* first)
 {
+	// error here
 	current = new OULink<T>(first->data);
 	current->next = first;
 }
@@ -32,6 +33,7 @@ OULinkedListEnumerator<T>::OULinkedListEnumerator(OULink<T>* first)
 template <typename T>
 bool OULinkedListEnumerator<T>::hasNext() const
 {
+	// or error here
 	if (current == nullptr)
 	{
 		return false;
