@@ -234,9 +234,8 @@ OULinkedList<DrillingRecord>* read_file()
 		line_counter = 0;
 		// prompt user for the name of a data file
 		print("Enter data file name: ");
-		std::cin.ignore();
 		// get file name from user
-		std::cin >> filename;
+		std::getline(std::cin, filename);
 		// exit input loop if user inputs nothin
 		if (filename.empty()) break;
 		std::ifstream datafile(filename);

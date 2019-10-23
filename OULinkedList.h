@@ -101,10 +101,20 @@ bool OULinkedList<T>::insert(T item)
                 newLink->next = first;
                 first = newLink;
             }
-            else
+            else if (current == last)
+            {
+                last->next = newLink;
+                last = newLink;
+            }
+            else if (previous != nullptr)
             {
                 newLink->next = current;
                 previous->next = newLink;
+            }
+            else if (previous == nullptr)
+            {
+                newLink->next = first;
+                first = newLink;
             }
             previous = current;
             current = current->next;
@@ -119,7 +129,6 @@ bool OULinkedList<T>::insert(T item)
         {
             previous = current;
             current = current->next;
-            continue;
         }
     }
     OULink<T>* new_link = new OULink<T>(item);
