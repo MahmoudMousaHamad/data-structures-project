@@ -25,27 +25,20 @@ public:
 template <typename T>
 OULinkedListEnumerator<T>::OULinkedListEnumerator(OULink<T>* first)
 {
-	// error here
-	current = new OULink<T>(first->data);
-	current->next = first;
+	current = first;
 }
 
 template <typename T>
 bool OULinkedListEnumerator<T>::hasNext() const
 {
-	// or error here
 	if (current == nullptr)
-	{
-		return false;
-	}
-	else if (current->next == nullptr) 
 	{
 		return false;
 	}
 	else
 	{
 		return true;
-	} 
+	}
 }
 
 template <typename T>
@@ -55,13 +48,9 @@ T OULinkedListEnumerator<T>::next()
 	{
 		throw new ExceptionEnumerationBeyondEnd();		
 	}
-	else if (current->next == nullptr)
-	{
-		throw new ExceptionEnumerationBeyondEnd();
-	}
 	else 
 	{
-		OULink<T>* temp = current->next;
+		OULink<T>* temp = current;
 		current = current->next;
 		return temp->data;
 	}
@@ -74,13 +63,9 @@ T OULinkedListEnumerator<T>::peek() const
 	{
 		throw new ExceptionEnumerationBeyondEnd();		
 	}
-	else if (current->next == nullptr)
-	{
-		throw new ExceptionEnumerationBeyondEnd();
-	}
 	else 
 	{
-		return current->next->data;
+		return current->data;
 	}
 }
 

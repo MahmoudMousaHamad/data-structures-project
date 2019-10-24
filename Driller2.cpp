@@ -89,7 +89,7 @@ void data_manipulation_loop()
 	}
 	do
 	{
-		std::string userinput;
+		std::string userinput = "";
 		print(MENU);
 		std::cin >> userinput;
 		if (userinput.empty()) continue;
@@ -112,6 +112,7 @@ void merge()
 		drillingLinkedList->insert(enumerator_to_merge.next());
 	}
 	drillingArray = new ResizableArray<DrillingRecord>(*drillingLinkedList);
+	delete list_to_merege;
 }
 
 void purge()
@@ -123,6 +124,7 @@ void purge()
 		drillingLinkedList->remove(enumerator_to_purge.next());
 	}
 	drillingArray = new ResizableArray<DrillingRecord>(*drillingLinkedList);
+	delete list_to_purge;
 }
 
 void records()
@@ -161,7 +163,8 @@ void output()
 		if (std::cin.peek() == '\n')
 		{
 			std::cout << print_array();
-			outputsuccessful = true;			
+			outputsuccessful = true;
+			break;			
 		}
 		std::cin >> outputfilename;
 		outputfile.open(outputfilename);
@@ -170,6 +173,7 @@ void output()
 			outputfile << print_array();
 			outputfile.close();
 			outputsuccessful = true;
+			break;
 		}
 	} while (!outputsuccessful);
 }
@@ -235,7 +239,7 @@ OULinkedList<DrillingRecord>* read_file()
 		// prompt user for the name of a data file
 		print("Enter data file name: ");
 		// get file name from user
-		std::getline(std::cin, filename);
+		std::cin >> filename;
 		// exit input loop if user inputs nothin
 		if (filename.empty()) break;
 		std::ifstream datafile(filename);
@@ -251,7 +255,8 @@ OULinkedList<DrillingRecord>* read_file()
 			if (file_ending_index_in_array < 0)
 			{
 				print("No valid records found.\n");
-				continue;
+				break;
+				// continue;
 			}
 			else 
 			{
@@ -301,7 +306,6 @@ void read_line(std::string line, std::ifstream& datafile, OULinkedList<DrillingR
 	if (recordvalidity == VALID_RECORD)
 	{
 		linkedList.insert(currentRecord);
-		stored_records++;	
 	}
 	else if (recordvalidity == INVALID_DATE)
 	{
@@ -422,47 +426,3 @@ void print(std::string output)
 {
 	std::cout << output;
 }
-
-// /**
-//  * Reads the input data files and stores valid records
-// */
-// void input_loop()
-// {
-// 	while (true)
-// 	{
-// 		std::string filename;
-// 		std::string line;
-// 		line_counter = 0;
-// 		// prompt user for the name of a data file
-// 		print("Enter data file name: ");
-// 		// get file name from user
-// 		std::getline(std::cin, filename);
-// 		// exit input loop if user inputs nothin
-// 		if (filename.empty()) break;
-// 		std::ifstream datafile(filename);
-// 		if (datafile.good())
-// 		{
-// 			std::getline(datafile, line);
-// 			while (std::getline(datafile, line))
-// 			{
-// 				read_line(line, datafile);
-// 			}
-// 			datafile.close();
-// 			file_ending_index_in_array = drillingArray->getSize() - 1;
-// 			if (file_ending_index_in_array >= 0)
-// 			{
-// 				break;
-// 			}
-// 			else
-// 			{
-// 				print("No valid records found.\n");
-// 				continue;
-// 			}
-// 		}
-// 		else 
-// 		{
-// 			print("File is not available.\n");
-// 			continue;
-// 		}
-// 	}
-// }

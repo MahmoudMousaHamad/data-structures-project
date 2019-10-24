@@ -90,7 +90,7 @@ bool OULinkedList<T>::insert(T item)
     }
     OULink<T>* previous = nullptr;
     OULink<T>* current = first;
-    while (current->next != nullptr)
+    while (current != nullptr)
     {
         long result = comparator->compare(item, current->data);
         if (result < 0)
@@ -101,23 +101,11 @@ bool OULinkedList<T>::insert(T item)
                 newLink->next = first;
                 first = newLink;
             }
-            else if (current == last)
-            {
-                last->next = newLink;
-                last = newLink;
-            }
-            else if (previous != nullptr)
+            else
             {
                 newLink->next = current;
                 previous->next = newLink;
             }
-            else if (previous == nullptr)
-            {
-                newLink->next = first;
-                first = newLink;
-            }
-            previous = current;
-            current = current->next;
             size++;
             return true;
         }
@@ -188,38 +176,44 @@ bool OULinkedList<T>::remove(T item)
     if (first == nullptr) return false;
     if (comparator->compare(item, first->data) == 0)
     {
-        OULink<T>* tempLink = first;
-        first = nullptr;
-        delete tempLink;
+        OULink<T>* temp = first;
+        first = first->next;
+        temp->next = nullptr;
+        delete temp;
+        size--;
+        return true;
     }
-    OULink<T>* current = first;
-    OULink<T>* previous = nullptr;
-    while (current->next != nullptr)
+    OULink<T>* previous = first;
+    OULink<T>* current = first->next;
+    while (current != nullptr)
     {
         long result = comparator->compare(item, current->data);
         if (result == 0)
         {
-            if (previous != nullptr)
-            {
-                if (current == last)
-                {
-                    delete current;
-                    last = previous;
-                    return true; 
-                }
-                previous->next = current->next;
-            }
-            delete current;
+            OULink<T>* temp = current;
+            previous->next = current->next;
+            temp->next = nullptr;
+            delete temp;
+            size--;
             return true;
         }
-        previous = current;
-        current = current->next;
+        else if (result < 0)
+        {
+            return false;
+        }
+        else
+        {
+            previous = current;
+            current = current->next;
+        }
     }
     if (comparator->compare(item, last->data) == 0)
     {
-        OULink<T>* tempLink = last;
-        last = current;
-        delete tempLink;
+        OULink<T>* temp = last;
+        last = previous;
+        temp->next = nullptr;
+        delete temp;
+        size--;
         return true;
     }
     return false;

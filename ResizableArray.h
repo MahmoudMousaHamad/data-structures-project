@@ -54,7 +54,7 @@ template <typename T>
 ResizableArray<T>::ResizableArray(const OULinkedList<T>& linkedList) 
 {
 	this->capacity = linkedList.getSize();
-	this->data = new T[100];
+	this->data = new T[capacity];
     OULinkedListEnumerator<T> enumerator = linkedList.enumerator();
     while (enumerator.hasNext())
     {
