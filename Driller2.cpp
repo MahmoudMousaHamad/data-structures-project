@@ -49,6 +49,7 @@ void find();
 void merge();
 void purge();
 void records();
+void user_menu();
 
 int main()
 {
@@ -87,6 +88,11 @@ void data_manipulation_loop()
 		print("Not enough memory.\n");
 		delete e;
 	}
+	user_menu();
+}
+
+void user_menu()
+{
 	do
 	{
 		std::string userinput = "";
@@ -234,10 +240,11 @@ OULinkedList<DrillingRecord>* read_file()
 	while (true)
 	{
 		std::string filename;
-		std::string line;
+		std::string line = "";
 		line_counter = 0;
 		// prompt user for the name of a data file
 		print("Enter data file name: ");
+		// use cin.peak() ? 
 		// get file name from user
 		std::cin >> filename;
 		// exit input loop if user inputs nothin

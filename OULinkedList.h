@@ -176,47 +176,83 @@ bool OULinkedList<T>::remove(T item)
     if (first == nullptr) return false;
     if (comparator->compare(item, first->data) == 0)
     {
-        OULink<T>* temp = first;
-        first = first->next;
-        temp->next = nullptr;
-        delete temp;
+        if (first->next == nullptr)
+        {
+            delete first;
+            first = nullptr;
+            last = nullptr;
+        }
+        else
+        {
+            first->data = first->next->data;
+            first->next = first->next->next;
+        }
         size--;
         return true;
     }
     OULink<T>* previous = first;
-    OULink<T>* current = first->next;
-    while (current != nullptr)
+    while (previous->next != nullptr && comparator->compare(item, previous->next->data) != 0)
     {
-        long result = comparator->compare(item, current->data);
-        if (result == 0)
-        {
-            OULink<T>* temp = current;
-            previous->next = current->next;
-            temp->next = nullptr;
-            delete temp;
-            size--;
-            return true;
-        }
-        else if (result < 0)
-        {
-            return false;
-        }
-        else
-        {
-            previous = current;
-            current = current->next;
-        }
+        previous = previous->next;
     }
-    if (comparator->compare(item, last->data) == 0)
+    if (previous->next == nullptr)
     {
-        OULink<T>* temp = last;
-        last = previous;
-        temp->next = nullptr;
-        delete temp;
-        size--;
-        return true;
+        return false;
     }
-    return false;
+    previous->next = previous->next->next;
+    return true;
+    // if (first == nullptr) return false;
+    // if (comparator->compare(item, first->data) == 0)
+    // {
+    //     OULink<T>* temp = first;
+    //     first = first->next;
+    //     temp->next = nullptr;
+    //     delete temp;
+    //     size--;
+    //     if (first->next == nullptr)
+    //     {
+    //         last = nullptr;
+    //     }
+    //     return true;
+    // }
+    // OULink<T>* previous = first;
+    // OULink<T>* current = first->next;
+    // while (current != nullptr)
+    // {
+    //     long result = comparator->compare(item, current->data);
+    //     if (result == 0)
+    //     {
+    //         previous->next = current->next;
+    //         if (current->next == nullptr)
+    //         {
+    //             last = previous;
+    //         }
+    //         OULink<T>* temp = current;
+    //         temp->next = nullptr;
+    //         delete temp;
+    //         size--;
+    //         return true;
+    //     }
+    //     else if (result < 0)
+    //     {
+    //         return false;
+    //     }
+    //     else
+    //     {
+    //         previous = current;
+    //         current = current->next;
+    //     }
+    // }
+    // if (comparator->compare(item, last->data) == 0)
+    // {
+    //     OULink<T>* temp = last;
+    //     last = previous;
+    //     temp->next = nullptr;
+    //     delete temp;
+    //     size--;
+    //     return true;
+    // }
+    // return false;
 }
 
 template <typename T>
