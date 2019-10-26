@@ -1,0 +1,14 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build Driller2.cpp",
+      "type": "shell",
+      "command": "g++ DrillingRecordComparator.cpp DrillingRecord.cpp Driller2.cpp -o Driller2.exe",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    }
+  ]
+}

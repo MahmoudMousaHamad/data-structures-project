@@ -42,7 +42,7 @@ void print(std::string output);
 void sort_array(int column_num);
 DrillingRecord get_record_to_find(int column_num);
 OULinkedList<DrillingRecord>* read_file();
-void output();
+void output(std::string option);
 void quit();
 void sort();
 void find();
@@ -50,6 +50,7 @@ void merge();
 void purge();
 void records();
 void user_menu();
+std::string print_linked_list();
 
 int main()
 {
@@ -99,12 +100,12 @@ void user_menu()
 		print(MENU);
 		std::cin >> userinput;
 		if (userinput.empty()) continue;
-		else if (userinput == "o") output();
+		else if (userinput == "o") output(userinput);
 		else if (userinput == "s") sort();
 		else if (userinput == "f") find();
 		else if (userinput == "m") merge();
 		else if (userinput == "p") purge();
-		else if (userinput == "r") records();
+		else if (userinput == "r") output(userinput);
 		else if (userinput == "q") { quit(); break; }
 	} while (true);
 }
@@ -157,31 +158,37 @@ void quit()
 /**
  * Outputs the content of the resizable array to a file or cout
 */
-void output()
+void output(std::string option)
 {
 	std::string outputfilename;
 	std::ofstream outputfile;
-	bool outputsuccessful = false;
+	std::string output_string = "";
+	if (option == "o")
+	{
+		output_string = print_array();
+	}
+	else if (option == "r")
+	{
+		output_string = print_linked_list();
+	}
 	print("Enter output file name: ");
 	do
 	{
 		std::cin.ignore();
 		if (std::cin.peek() == '\n')
 		{
-			std::cout << print_array();
-			outputsuccessful = true;
+			std::cout << output_string;
 			break;			
 		}
 		std::cin >> outputfilename;
 		outputfile.open(outputfilename);
 		if (outputfile.is_open())
 		{
-			outputfile << print_array();
+			outputfile << output_string;
 			outputfile.close();
-			outputsuccessful = true;
 			break;
 		}
-	} while (!outputsuccessful);
+	} while (true);
 }
 /**
  * Finds a record and its duplicates if they exist
@@ -239,12 +246,11 @@ OULinkedList<DrillingRecord>* read_file()
 	}
 	while (true)
 	{
-		std::string filename;
+		std::string filename = "";
 		std::string line = "";
 		line_counter = 0;
 		// prompt user for the name of a data file
 		print("Enter data file name: ");
-		// use cin.peak() ? 
 		// get file name from user
 		std::cin >> filename;
 		// exit input loop if user inputs nothin
@@ -258,8 +264,8 @@ OULinkedList<DrillingRecord>* read_file()
 				read_line(line, datafile, *tempLinkedList);
 			}
 			datafile.close();
-			file_ending_index_in_array = tempLinkedList->getSize() - 1;
-			if (file_ending_index_in_array < 0)
+			file_ending_index_in_array = tempLinkedList->getSize();
+			if (file_ending_index_in_array == 0)
 			{
 				print("No valid records found.\n");
 				break;
@@ -348,9 +354,8 @@ std::string check_record(DrillingRecord record)
 		{
 			if (counter < file_ending_index_in_array && file_ending_index_in_array > 0)
 			{
-				valid_records++;
 				drillingLinkedList->replace(record);
-				return DUPLICATE_TIMESTAMP_DIFFERENT_FILE;
+				break;
 			}
 			print("Duplicate timestamp " + record.getString(1) + " at line " + std::to_string(line_counter) + ".\n");
 			return DUPLICATE_TIMESTAMP;
@@ -424,6 +429,21 @@ std::string print_array()
 		oSS << record << "\n";
 	}
 	oSS << "Data lines read: " << data_lines_read << "; Valid Drilling records read: " << valid_records << "; Drilling records in memory: " << drillingArray->getSize() << "\n";
+	return oSS.str();
+}
+/**
+ * Returns a string representation of the records linked list
+*/
+std::string print_linked_list()
+{
+	std::ostringstream oSS;
+	OULinkedListEnumerator<DrillingRecord> enumerator = drillingLinkedList->enumerator();
+	while (enumerator.hasNext())
+	{
+		DrillingRecord record = enumerator.next();
+		oSS << record << "\n";
+	}
+	oSS << "Data lines read: " << data_lines_read << "; Valid Drilling records read: " << valid_records << "; Drilling records in memory: " << drillingLinkedList->getSize() << "\n";
 	return oSS.str();
 }
 /**

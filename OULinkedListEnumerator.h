@@ -12,7 +12,7 @@ class OULinkedListEnumerator : public Enumerator<T>
     template <typename U>
     friend class OULinkedListEnumerator;
 private:
-	OULink<T>* current = nullptr;
+	OULink<T>* current = NULL;
 public:
 	OULinkedListEnumerator(OULink<T>* first);
 	bool hasNext() const;
@@ -31,7 +31,7 @@ OULinkedListEnumerator<T>::OULinkedListEnumerator(OULink<T>* first)
 template <typename T>
 bool OULinkedListEnumerator<T>::hasNext() const
 {
-	if (current == nullptr)
+	if (current == NULL)
 	{
 		return false;
 	}
@@ -44,7 +44,7 @@ bool OULinkedListEnumerator<T>::hasNext() const
 template <typename T>
 T OULinkedListEnumerator<T>::next()
 {
-	if (current == nullptr)
+	if (current == NULL)
 	{
 		throw new ExceptionEnumerationBeyondEnd();		
 	}
@@ -59,7 +59,7 @@ T OULinkedListEnumerator<T>::next()
 template <typename T>
 T OULinkedListEnumerator<T>::peek() const
 {
-	if (current == nullptr)
+	if (current == NULL)
 	{
 		throw new ExceptionEnumerationBeyondEnd();		
 	}
