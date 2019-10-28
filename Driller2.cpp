@@ -55,6 +55,9 @@ int main()
 	return 0;
 }
 
+/**
+ * Creates master drilling linked list, reads first file, and contains user menu
+ * */
 void user_option_loop()
 {
 	try
@@ -93,7 +96,9 @@ void user_option_loop()
 		else if (userinput == "q") { quit(); break; }
 	} while (true);
 }
-
+/**
+ * Reads file to merge.
+ * */
 void merge()
 {
 	OULinkedList<DrillingRecord>* list_to_merege = read_file();
@@ -105,7 +110,9 @@ void merge()
 	drillingArray = new ResizableArray<DrillingRecord>(*drillingLinkedList);
 	delete list_to_merege;
 }
-
+/**
+ * Reads file to purge.
+ * */
 void purge()
 {
 	OULinkedList<DrillingRecord>* list_to_purge = read_file();
@@ -232,11 +239,11 @@ OULinkedList<DrillingRecord>* read_file()
 		line_counter = 0;
 		// prompt user for the name of a data file
 		print("Enter data file name: ");
-    // do not execute cin.ignore() if first file
-    if (last_file_ending_index_in_array != 0)
-    {
-      std::cin.ignore();
-    }
+		// do not execute cin.ignore() if first file
+		if (last_file_ending_index_in_array != 0)
+		{
+		std::cin.ignore();
+		}
 		if (std::cin.peek() == '\n')
 		{
 			break;			
@@ -311,7 +318,7 @@ void read_line(std::string line, std::ifstream& datafile, OULinkedList<DrillingR
 	}
 }
 /**
- * Checks the validity of a DrillingRecord object
+ * Checks the validity of a DrillingRecord object within a linked list
 */
 std::string check_record(DrillingRecord record, OULinkedList<DrillingRecord>& linkedList)
 { 
