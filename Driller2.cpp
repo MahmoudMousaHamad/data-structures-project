@@ -24,7 +24,7 @@ const std::string INVALID_DATA = "INVALID_DATA";
 const std::string VALID_RECORD = "VALID_RECORD";
 const std::string MENU = "Enter (o)utput, (s)ort, (f)ind, (m)erge, (p)urge, (r)ecords, or (q)uit: ";
 // Counters and flags
-long file_ending_index_in_array = 0; // Marks the end of the previous file in the array
+unsigned long last_file_ending_index_in_array = 0; // Marks the end of the previous file in the array
 unsigned long line_counter = 0;
 unsigned long data_lines_read;
 unsigned long valid_records;
@@ -32,7 +32,6 @@ unsigned long stored_records;
 unsigned int sort_column = -1;
 // Functions definitions
 void user_option_loop();
-void data_manipulation_loop();
 std::string print_array();
 void read_line(std::string line, std::ifstream& datafile, OULinkedList<DrillingRecord>& linkedList);
 std::string check_record(DrillingRecord record);
@@ -48,8 +47,6 @@ void sort();
 void find();
 void merge();
 void purge();
-void records();
-void user_menu();
 std::string print_linked_list();
 
 int main()
@@ -71,14 +68,6 @@ void user_option_loop()
 		delete e;
 	}
 	drillingLinkedList = read_file();
-	data_manipulation_loop();
-}
-
-/**
- * Manipulates data upon user's input
-*/
-void data_manipulation_loop()
-{
 	if (drillingLinkedList->getSize() == 0) return;
 	try
 	{
@@ -89,11 +78,6 @@ void data_manipulation_loop()
 		print("Not enough memory.\n");
 		delete e;
 	}
-	user_menu();
-}
-
-void user_menu()
-{
 	do
 	{
 		std::string userinput = "";
@@ -134,11 +118,6 @@ void purge()
 	delete list_to_purge;
 }
 
-void records()
-{
-	
-}
-
 /**
  * Sorts the resizable array
 */
@@ -156,7 +135,7 @@ void quit()
 	print("Thanks for using Driller.\n");
 }
 /**
- * Outputs the content of the resizable array to a file or cout
+ * Outputs the content of the resizable array or linked list to a file or cout
 */
 void output(std::string option)
 {
@@ -230,7 +209,9 @@ void find()
 	}
 	print("Drilling records found: " + std::to_string(recordsfoundcounter) + ".\n");
 }
-
+/**
+ * Reads a file, checks its records and then returns a linked list
+ * */
 OULinkedList<DrillingRecord>* read_file()
 {
 	OULinkedList<DrillingRecord>* tempLinkedList;
@@ -244,17 +225,15 @@ OULinkedList<DrillingRecord>* read_file()
 		print("Not enough memory.\n");
 		delete e;
 	}
-	while (true)
+	do
 	{
 		std::string filename = "";
 		std::string line = "";
 		line_counter = 0;
 		// prompt user for the name of a data file
 		print("Enter data file name: ");
-		// get file name from user
 		std::cin >> filename;
-		// exit input loop if user inputs nothin
-		if (filename.empty()) break;
+		if (filename.length() == 0) break;
 		std::ifstream datafile(filename);
 		if (datafile.good())
 		{
@@ -264,24 +243,20 @@ OULinkedList<DrillingRecord>* read_file()
 				read_line(line, datafile, *tempLinkedList);
 			}
 			datafile.close();
-			file_ending_index_in_array = tempLinkedList->getSize();
-			if (file_ending_index_in_array == 0)
+			// check if any records were read.
+			if (tempLinkedList->getSize() == last_file_ending_index_in_array)
 			{
 				print("No valid records found.\n");
-				break;
-				// continue;
 			}
-			else 
-			{
-				break;
-			}
+			// update the file ending index to use later.
+			last_file_ending_index_in_array = tempLinkedList->getSize();
+			break;
 		}
 		else 
 		{
 			print("File is not available.\n");
-			continue;
 		}
-	}
+	}  while (true);
 	return tempLinkedList;
 }
 /**
@@ -307,7 +282,7 @@ void read_line(std::string line, std::ifstream& datafile, OULinkedList<DrillingR
 		{
 			// string column
 			currentRecord.addString(field);
-		} 
+		}
 		else 
 		{
 			currentRecord.addNum(std::stod(field));
@@ -347,12 +322,12 @@ std::string check_record(DrillingRecord record)
 	}
 	// check timestamp
 	OULinkedListEnumerator<DrillingRecord> enumerator = drillingLinkedList->enumerator();
-	long counter = 0;
+	unsigned long counter = 0;
 	while (enumerator.hasNext())
 	{
 		if (enumerator.next().getString(1).compare(record.getString(1)) == 0)
 		{
-			if (counter < file_ending_index_in_array && file_ending_index_in_array > 0)
+			if (counter < last_file_ending_index_in_array)
 			{
 				drillingLinkedList->replace(record);
 				break;
@@ -389,7 +364,7 @@ void sort_array(int column_num)
 	sort_column = column_num;
 }
 /**
- * Returns a DrillingRecord object that needs to be found in the array
+ * Halper method that returns a DrillingRecord object that needs to be found in the array
 */
 DrillingRecord get_record_to_find(int column_num)
 {
