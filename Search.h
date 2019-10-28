@@ -11,9 +11,9 @@
 // if not found, returns -(location to insert + 1)
 template <typename T>
 long binarySearch(const T& item, const ResizableArray<T>& array, const Comparator<T>& comparator) {
-    long left = 0;
-    long right = array.getSize() - 1;
-    long mid;
+    unsigned long left = 0;
+    unsigned long right = array.getSize() - 1;
+    unsigned long mid;
     while (left <= right)
     {
         mid = (long) (left + right) / 2;

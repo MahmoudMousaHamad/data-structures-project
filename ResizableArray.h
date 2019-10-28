@@ -2,6 +2,9 @@
 #define RESIZABLE_ARRAY_H
 
 #include "Exceptions.h"
+#include "OULink.h"
+#include "OULinkedList.h"
+#include "OULinkedListEnumerator.h"
 
 const unsigned long DEFAULT_ARRAY_CAPACITY = 10;        // capacity used in no arg constructor
 
@@ -16,6 +19,7 @@ private:
 public:
     ResizableArray();                                   // constructs array with default capacity
     ResizableArray(unsigned long capacity);             // constructs array with specified capacity
+    ResizableArray(const OULinkedList<T>& linkedList);         // constructs array from OULinkedList
     virtual ~ResizableArray();                          // frees array space as object is deleted
     void add(T item);                                   // adds item, increments size, doubles capacity as necessary
     
@@ -28,6 +32,7 @@ public:
     
     unsigned long getSize() const;                      // returns number of items currently in array
     unsigned long getCapacity() const;                  // returns the current capacity of the array
+    void clear();                                       // removes all items from array, resets to default capacity, set size to 0
 };
 
 // Add your implementation below this line. Do not add or modify anything above this line.
@@ -43,7 +48,7 @@ ResizableArray<T>::ResizableArray()
 }
 
 template <typename T>
-ResizableArray<T>::ResizableArray(unsigned long capacity) 
+ResizableArray<T>::ResizableArray(unsigned long capacity)
 {
 	this->capacity = capacity;
 	this->data = new T[capacity];
@@ -51,6 +56,18 @@ ResizableArray<T>::ResizableArray(unsigned long capacity)
 	{
 		throw new ExceptionMemoryNotAvailable();
 	}
+}
+
+template <typename T>
+ResizableArray<T>::ResizableArray(const OULinkedList<T>& linkedList) 
+{
+	this->capacity = linkedList.getSize();
+	this->data = new T[capacity];
+    OULinkedListEnumerator<T> enumerator = linkedList.enumerator();
+    while (enumerator.hasNext())
+    {
+        this->add(enumerator.next());
+    }
 }
 
 template <typename T>
@@ -155,6 +172,14 @@ T ResizableArray<T>::operator[](unsigned long index) const
     
 	T record = data[index];
 	return record;
+}
+
+template <typename T>
+void ResizableArray<T>::clear()
+{
+    delete[] this->data;
+    size = 0;
+    this->capacity = 0;
 }
 
 template <typename T>
