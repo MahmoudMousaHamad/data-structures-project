@@ -34,7 +34,7 @@ unsigned int sort_column = -1;
 void user_option_loop();
 std::string print_array();
 void read_line(std::string line, std::ifstream& datafile, OULinkedList<DrillingRecord>& linkedList);
-std::string check_record(DrillingRecord record);
+std::string check_record(DrillingRecord record, OULinkedList<DrillingRecord>& linkedList);
 bool check_data(DrillingRecord record);
 void insert_record(DrillingRecord record);
 void print(std::string output);
@@ -299,7 +299,7 @@ void read_line(std::string line, std::ifstream& datafile, OULinkedList<DrillingR
 		columnCounter++;
 	}
 	data_lines_read++;
-	recordvalidity = check_record(currentRecord);
+	recordvalidity = check_record(currentRecord, linkedList);
 	if (recordvalidity == VALID_RECORD)
 	{
 		linkedList.insert(currentRecord);
@@ -313,12 +313,12 @@ void read_line(std::string line, std::ifstream& datafile, OULinkedList<DrillingR
 /**
  * Checks the validity of a DrillingRecord object
 */
-std::string check_record(DrillingRecord record)
+std::string check_record(DrillingRecord record, OULinkedList<DrillingRecord>& linkedList)
 { 
-	if (drillingLinkedList->getSize() > 0)
+	if (linkedList.getSize() > 0)
 	{
 		// check date
-		if (drillingLinkedList->getFirst().getString(0) != record.getString(0))
+		if (linkedList.getFirst().getString(0) != record.getString(0))
 		{
 			return INVALID_DATE;
 		}
@@ -330,7 +330,7 @@ std::string check_record(DrillingRecord record)
 		return INVALID_DATA;
 	}
 	// check timestamp
-	OULinkedListEnumerator<DrillingRecord> enumerator = drillingLinkedList->enumerator();
+	OULinkedListEnumerator<DrillingRecord> enumerator = linkedList.enumerator();
 	unsigned long counter = 0;
 	while (enumerator.hasNext())
 	{
@@ -338,7 +338,7 @@ std::string check_record(DrillingRecord record)
 		{
 			if (counter < last_file_ending_index_in_array)
 			{
-				drillingLinkedList->replace(record);
+				linkedList.replace(record);
 				break;
 			}
 			print("Duplicate timestamp " + record.getString(1) + " at line " + std::to_string(line_counter) + ".\n");
