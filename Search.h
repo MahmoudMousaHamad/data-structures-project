@@ -16,7 +16,8 @@ long binarySearch(const T& item, const ResizableArray<T>& array, const Comparato
     unsigned long mid;
     while (left <= right)
     {
-        mid = (left + right) / 2;
+        mid = (long) (left + right) / 2;
+        std::cout << mid << std::endl;
         int result = comparator.compare(item, array[mid]);
         if (result == 0)
         {
