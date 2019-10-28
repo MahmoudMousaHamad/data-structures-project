@@ -65,7 +65,7 @@ int main()
 	// Read first file
 	drillingLinkedList = read_file();
 	// Make sure that we actually read something
-	if (drillingLinkedList->getSize() == 0) return;
+	if (drillingLinkedList->getSize() == 0) return 0;
 	// Create drilling resizable array
 	try
 	{
