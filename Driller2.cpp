@@ -232,6 +232,15 @@ OULinkedList<DrillingRecord>* read_file()
 		line_counter = 0;
 		// prompt user for the name of a data file
 		print("Enter data file name: ");
+    // do not execute cin.ignore() if first file
+    if (last_file_ending_index_in_array != 0)
+    {
+      std::cin.ignore();
+    }
+		if (std::cin.peek() == '\n')
+		{
+			break;			
+		}
 		std::cin >> filename;
 		if (filename.length() == 0) break;
 		std::ifstream datafile(filename);
@@ -248,7 +257,7 @@ OULinkedList<DrillingRecord>* read_file()
 			{
 				print("No valid records found.\n");
 			}
-			// update the file ending index to use later.
+			// update the last_file_ending_index_in_array for later use.
 			last_file_ending_index_in_array = tempLinkedList->getSize();
 			break;
 		}
