@@ -51,15 +51,7 @@ std::string print_linked_list();
 
 int main()
 {
-	user_option_loop();
-	return 0;
-}
-
-/**
- * Creates master drilling linked list, reads first file, and contains user menu
- * */
-void user_option_loop()
-{
+	// Create master drilling linked list in heap
 	try
 	{
 		DrillingRecordComparator* comparator = new DrillingRecordComparator(1);
@@ -70,8 +62,11 @@ void user_option_loop()
 		print("Not enough memory.\n");
 		delete e;
 	}
+	// Read first file
 	drillingLinkedList = read_file();
+	// Make sure that we actually read something
 	if (drillingLinkedList->getSize() == 0) return;
+	// Create drilling resizable array
 	try
 	{
 		drillingArray = new ResizableArray<DrillingRecord>(*drillingLinkedList);
@@ -81,6 +76,17 @@ void user_option_loop()
 		print("Not enough memory.\n");
 		delete e;
 	}
+	// Show menu
+	user_option_loop();
+
+	return 0;
+}
+
+/**
+ * Contains user menu
+ * */
+void user_option_loop()
+{
 	do
 	{
 		std::string userinput = "";
