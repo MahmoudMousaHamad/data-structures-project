@@ -75,6 +75,7 @@ template <typename T>
 ResizableArray<T>::~ResizableArray() 
 {
 	delete[] this->data;
+    data = nullptr;
 }
 
 template <typename T>
@@ -179,6 +180,7 @@ template <typename T>
 void ResizableArray<T>::clear()
 {
     delete[] this->data;
+    data = nullptr;
     size = 0;
     this->capacity = 0;
 }
@@ -197,6 +199,7 @@ void ResizableArray<T>::doubleCapacity()
         newData[i] = this->data[i];
     }
     delete[] this->data;
+    data = nullptr;
     this->data = newData;
     this->capacity = newCapacity;
 }
@@ -215,6 +218,7 @@ void ResizableArray<T>::halveCapacity()
         newData[i] = this->data[i];
     }
     delete[] this->data;
+    data = nullptr;
     this->data = newData;
     this->capacity = newCapacity;
 }

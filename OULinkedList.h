@@ -76,6 +76,7 @@ template <typename T>
 OULinkedList<T>::~OULinkedList()
 {
     delete this->first;
+    first = nullptr;
 }
 
 template <typename T>
@@ -246,6 +247,7 @@ T OULinkedList<T>::pullFirst()
         }
         T tempItem = tempLink->data;
         delete tempLink;
+        tempLink = nullptr;
         size--;
         return tempItem;
     }
@@ -270,6 +272,7 @@ bool OULinkedList<T>::removeFirst()
             first = NULL;
         }
         delete tempLink;
+        tempLink = nullptr;
         size--;
         return true;
     }
@@ -328,6 +331,7 @@ template <typename T>
 void OULinkedList<T>::clear()
 {
     delete first;
+    first = nullptr;
     this->size = 0;
 }
 

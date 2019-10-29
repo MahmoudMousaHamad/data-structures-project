@@ -108,6 +108,7 @@ void merge()
 	drillingArray = new ResizableArray<DrillingRecord>(*drillingLinkedList);
     if (drillingArray == nullptr) throw new ExceptionMemoryNotAvailable();
 	delete list_to_merege;
+	list_to_merege = nullptr;
 }
 /**
  * Reads file to purge.
@@ -123,6 +124,7 @@ void purge()
 	drillingArray = new ResizableArray<DrillingRecord>(*drillingLinkedList);
     if (drillingArray == nullptr) throw new ExceptionMemoryNotAvailable();
 	delete list_to_purge;
+	list_to_purge = nullptr;
 }
 
 /**
