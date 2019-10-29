@@ -84,6 +84,10 @@ bool OULinkedList<T>::insert(T item)
     if (first == NULL)
     {
         first = new OULink<T>(item);
+        if (first == nullptr)
+        {
+            throw new ExceptionMemoryNotAvailable();
+        }
         last = first;
         this->size++;
         return true;
@@ -96,6 +100,10 @@ bool OULinkedList<T>::insert(T item)
         if (result < 0)
         {
             OULink<T>* newLink = new OULink<T>(item);
+            if (newLink == nullptr)
+            {
+                throw new ExceptionMemoryNotAvailable();
+            }
             if (first == current)
             {
                 newLink->next = first;
@@ -120,6 +128,7 @@ bool OULinkedList<T>::insert(T item)
         }
     }
     OULink<T>* new_link = new OULink<T>(item);
+    if (new_link == nullptr) throw new ExceptionMemoryNotAvailable();
     last->next = new_link;
     last = new_link;
     size++;
@@ -130,6 +139,7 @@ template <typename T>
 bool OULinkedList<T>::append(T item)
 {
     OULink<T> *newLink = new OULink<T>(item);
+    if (newLink == nullptr) throw new ExceptionMemoryNotAvailable();
     if (first == NULL)
     {
         first = newLink;
@@ -201,58 +211,6 @@ bool OULinkedList<T>::remove(T item)
     }
     previous->next = previous->next->next;
     return true;
-    // if (first == NULL) return false;
-    // if (comparator->compare(item, first->data) == 0)
-    // {
-    //     OULink<T>* temp = first;
-    //     first = first->next;
-    //     temp->next = NULL;
-    //     delete temp;
-    //     size--;
-    //     if (first->next == NULL)
-    //     {
-    //         last = NULL;
-    //     }
-    //     return true;
-    // }
-    // OULink<T>* previous = first;
-    // OULink<T>* current = first->next;
-    // while (current != NULL)
-    // {
-    //     long result = comparator->compare(item, current->data);
-    //     if (result == 0)
-    //     {
-    //         previous->next = current->next;
-    //         if (current->next == NULL)
-    //         {
-    //             last = previous;
-    //         }
-    //         OULink<T>* temp = current;
-    //         temp->next = NULL;
-    //         delete temp;
-    //         size--;
-    //         return true;
-    //     }
-    //     else if (result < 0)
-    //     {
-    //         return false;
-    //     }
-    //     else
-    //     {
-    //         previous = current;
-    //         current = current->next;
-    //     }
-    // }
-    // if (comparator->compare(item, last->data) == 0)
-    // {
-    //     OULink<T>* temp = last;
-    //     last = previous;
-    //     temp->next = NULL;
-    //     delete temp;
-    //     size--;
-    //     return true;
-    // }
-    // return false;
 }
 
 template <typename T>

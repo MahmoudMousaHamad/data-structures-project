@@ -63,6 +63,7 @@ ResizableArray<T>::ResizableArray(const OULinkedList<T>& linkedList)
 {
 	this->capacity = linkedList.getSize();
 	this->data = new T[capacity];
+    if (data == nullptr) throw new ExceptionMemoryNotAvailable();
     OULinkedListEnumerator<T> enumerator = linkedList.enumerator();
     while (enumerator.hasNext())
     {

@@ -36,7 +36,6 @@ std::string print_array();
 void read_line(std::string line, std::ifstream& datafile, OULinkedList<DrillingRecord>& linkedList);
 std::string check_record(DrillingRecord record, OULinkedList<DrillingRecord>& linkedList);
 bool check_data(DrillingRecord record);
-void insert_record(DrillingRecord record);
 void print(std::string output);
 void sort_array(int column_num);
 DrillingRecord get_record_to_find(int column_num);
@@ -52,33 +51,19 @@ std::string print_linked_list();
 int main()
 {
 	// Create master drilling linked list in heap
-	try
-	{
-		DrillingRecordComparator* comparator = new DrillingRecordComparator(1);
-		drillingLinkedList = new OULinkedList<DrillingRecord>(comparator);
-	}
-	catch(ExceptionMemoryNotAvailable* e)
-	{
-		print("Not enough memory.\n");
-		delete e;
-	}
+	DrillingRecordComparator* comparator = new DrillingRecordComparator(1);
+    if (comparator == nullptr) throw new ExceptionMemoryNotAvailable();
+	drillingLinkedList = new OULinkedList<DrillingRecord>(comparator);
+    if (drillingLinkedList == nullptr) throw new ExceptionMemoryNotAvailable();	
 	// Read first file
 	drillingLinkedList = read_file();
 	// Make sure that we actually read something
 	if (drillingLinkedList->getSize() == 0) return 0;
 	// Create drilling resizable array
-	try
-	{
-		drillingArray = new ResizableArray<DrillingRecord>(*drillingLinkedList);
-	}
-	catch(ExceptionMemoryNotAvailable* e)
-	{
-		print("Not enough memory.\n");
-		delete e;
-	}
+	drillingArray = new ResizableArray<DrillingRecord>(*drillingLinkedList);
+    if (drillingArray == nullptr) throw new ExceptionMemoryNotAvailable();
 	// Show menu
 	user_option_loop();
-
 	return 0;
 }
 
@@ -111,9 +96,17 @@ void merge()
 	OULinkedListEnumerator<DrillingRecord> enumerator_to_merge = list_to_merege->enumerator();
 	while (enumerator_to_merge.hasNext())
 	{
-		drillingLinkedList->insert(enumerator_to_merge.next());
+		try
+		{
+			drillingLinkedList->insert(enumerator_to_merge.next());
+		}
+		catch(const ExceptionMemoryNotAvailable& e)
+		{
+			print("No memory available");
+		}
 	}
 	drillingArray = new ResizableArray<DrillingRecord>(*drillingLinkedList);
+    if (drillingArray == nullptr) throw new ExceptionMemoryNotAvailable();
 	delete list_to_merege;
 }
 /**
@@ -128,6 +121,7 @@ void purge()
 		drillingLinkedList->remove(enumerator_to_purge.next());
 	}
 	drillingArray = new ResizableArray<DrillingRecord>(*drillingLinkedList);
+    if (drillingArray == nullptr) throw new ExceptionMemoryNotAvailable();
 	delete list_to_purge;
 }
 
@@ -227,17 +221,10 @@ void find()
  * */
 OULinkedList<DrillingRecord>* read_file()
 {
-	OULinkedList<DrillingRecord>* tempLinkedList;
-	try
-	{
-		DrillingRecordComparator* comparator = new DrillingRecordComparator(1);
-		tempLinkedList = new OULinkedList<DrillingRecord>(comparator);
-	}
-	catch(ExceptionMemoryNotAvailable* e)
-	{
-		print("Not enough memory.\n");
-		delete e;
-	}
+	DrillingRecordComparator* comparator = new DrillingRecordComparator(1);
+    if (comparator == nullptr) throw new ExceptionMemoryNotAvailable();
+	OULinkedList<DrillingRecord>* tempLinkedList = new OULinkedList<DrillingRecord>(comparator);
+    if (tempLinkedList == nullptr) throw new ExceptionMemoryNotAvailable();
 	do
 	{
 		std::string filename = "";
@@ -315,7 +302,14 @@ void read_line(std::string line, std::ifstream& datafile, OULinkedList<DrillingR
 	recordvalidity = check_record(currentRecord, linkedList);
 	if (recordvalidity == VALID_RECORD)
 	{
-		linkedList.insert(currentRecord);
+		try
+		{
+			linkedList.insert(currentRecord);			
+		}
+		catch(const ExceptionMemoryNotAvailable& e)
+		{
+			print("No memory available");
+		}
 	}
 	else if (recordvalidity == INVALID_DATE)
 	{
@@ -406,13 +400,6 @@ DrillingRecord get_record_to_find(int column_num)
 		record.setString(strvalue, column_num);
 	}
 	return record;
-}
-/**
- * Inserts a record into the LinkedList
-*/
-void insert_record(DrillingRecord record)
-{
-	drillingLinkedList->insert(record);
 }
 /**
  * Returns a string representation of the records array
