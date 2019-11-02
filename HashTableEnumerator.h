@@ -4,6 +4,8 @@
 #include "Enumerator.h"
 #include "Exceptions.h"
 #include "HashTable.h"
+#include "OULinkedList.h"
+#include "OULinkedListEnumerator.h"
 
 template <typename T>
 class HashTableEnumerator : public Enumerator<T>
@@ -21,5 +23,66 @@ public:
 };
 
 // Add your implementation below this line.
+
+template <typename T>
+HashTableEnumerator<T>::HashTableEnumerator(HashTable<T>* hashTable)
+{
+    this->hashTable = hashTable;
+}
+
+template <typename T>
+HashTableEnumerator<T>::~HashTableEnumerator()
+{
+    delete hashTable; hashTable = nullptr;
+    delete chainEnumerator; chainEnumerator = nullptr;
+}
+
+template <typename T>
+bool HashTableEnumerator<T>::hasNext() const
+{
+    for (unsigned long i = bucket; i < hashTable->getBaseCapacity(); ++i)
+    {
+        if (hashTable->table[i]->getSize() > 0)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+template <typename T>
+T HashTableEnumerator<T>::next()
+{
+    for (unsigned long i = bucket; i < hashTable->getBaseCapacity(); ++i)
+    {
+        OULinkedList<T>* linkedList = hashTable->table[i];
+        if (linkedList->getSize() > 0)
+        {
+            chainEnumerator = linkedList->enumerator();
+            while (chainEnumerator->hasNext())
+            {
+                return chainEnumerator->next();
+            }
+            ++bucket;
+        }
+    }
+}
+
+template <typename T>
+T HashTableEnumerator<T>::peek() const
+{
+    for (unsigned long i = bucket; i < hashTable->getBaseCapacity(); ++i)
+    {
+        OULinkedList<T>* linkedList = hashTable->table[i];
+        if (linkedList->getSize() > 0)
+        {
+            chainEnumerator = linkedList->enumerator();
+            while (chainEnumerator->hasNext())
+            {
+                return chainEnumerator->peek();
+            }
+        }
+    }
+}
 
 #endif // !HASH_TABLE_ENUMERATOR
