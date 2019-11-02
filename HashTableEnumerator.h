@@ -66,6 +66,7 @@ T HashTableEnumerator<T>::next()
             ++bucket;
         }
     }
+    throw new ExceptionEnumerationBeyondEnd();
 }
 
 template <typename T>
@@ -83,6 +84,7 @@ T HashTableEnumerator<T>::peek() const
             }
         }
     }
+    throw new ExceptionEnumerationBeyondEnd();
 }
 
 #endif // !HASH_TABLE_ENUMERATOR

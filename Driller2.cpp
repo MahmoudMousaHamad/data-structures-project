@@ -11,18 +11,25 @@
 #include "OULink.h"
 #include "OULinkedList.h"
 #include "OULinkedListEnumerator.h"
+#include "DrillingRecordHasher.h"
+#include "HashTable.h"
+#include "HashTableEnumerator.h"
 
 // Resizable array that stores the records
 ResizableArray<DrillingRecord>* drillingArray;
 // LinkedList that stores the records
 OULinkedList<DrillingRecord>* drillingLinkedList;
+// HashTable that stores the records
+HashTable<DrillingRecord>* drillingHashTable;
+// Drilling Hasher
+DrillingRecordHasher* hasher;
 // Constants
 const std::string INVALID_DATE = "INVALID_DATE";
 const std::string DUPLICATE_TIMESTAMP = "DUPLICATE_TIMESTAMP";
 const std::string DUPLICATE_TIMESTAMP_DIFFERENT_FILE = "DUPLICATE_TIMESTAMP_DIFFERENT_FILE";
 const std::string INVALID_DATA = "INVALID_DATA";
 const std::string VALID_RECORD = "VALID_RECORD";
-const std::string MENU = "Enter (o)utput, (s)ort, (f)ind, (m)erge, (p)urge, (r)ecords, or (q)uit: ";
+const std::string MENU = "Enter (o)utput, (s)ort, (f)ind, (m)erge, (p)urge, (r)ecords, (h)ash table, or (q)uit: ";
 // Counters and flags
 unsigned long last_file_ending_index_in_array = 0; // Marks the end of the previous file in the array
 unsigned long line_counter = 0;
@@ -32,7 +39,7 @@ unsigned long stored_records;
 unsigned int sort_column = -1;
 // Functions definitions
 void user_option_loop();
-std::string print_array();
+std::string array_to_string();
 void read_line(std::string line, std::ifstream& datafile, OULinkedList<DrillingRecord>& linkedList);
 std::string check_record(DrillingRecord record, OULinkedList<DrillingRecord>& linkedList);
 bool check_data(DrillingRecord record);
@@ -46,7 +53,9 @@ void sort();
 void find();
 void merge();
 void purge();
-std::string print_linked_list();
+std::string linkedlist_to_string();
+std::string hashtable_to_string();
+std::string counters_to_string()
 
 int main()
 {
@@ -62,6 +71,11 @@ int main()
 	// Create drilling resizable array
 	drillingArray = new ResizableArray<DrillingRecord>(*drillingLinkedList);
     if (drillingArray == nullptr) throw new ExceptionMemoryNotAvailable();
+	// Create drilling HashTable and hasher in heap
+	hasher = new DrillingRecordHasher();
+	if (hasher == nullptr) throw new ExceptionMemoryNotAvailable();
+	drillingHashTable = new HashTable<DrillingRecord>(drillingLinkedList, hasher);
+	if (drillingHashTable == nullptr) throw new ExceptionMemoryNotAvailable();
 	// Show menu
 	user_option_loop();
 	return 0;
@@ -84,6 +98,7 @@ void user_option_loop()
 		else if (userinput == "m") merge();
 		else if (userinput == "p") purge();
 		else if (userinput == "r") output(userinput);
+		else if (userinput == "h") output(userinput);
 		else if (userinput == "q") { quit(); break; }
 	} while (true);
 }
@@ -107,6 +122,8 @@ void merge()
 	}
 	drillingArray = new ResizableArray<DrillingRecord>(*drillingLinkedList);
     if (drillingArray == nullptr) throw new ExceptionMemoryNotAvailable();
+	drillingHashTable = new HashTable<DrillingRecord>(drillingLinkedList, hasher);
+	if (drillingHashTable == nullptr) throw new ExceptionMemoryNotAvailable();
 	delete list_to_merege;
 	list_to_merege = nullptr;
 }
@@ -123,6 +140,8 @@ void purge()
 	}
 	drillingArray = new ResizableArray<DrillingRecord>(*drillingLinkedList);
     if (drillingArray == nullptr) throw new ExceptionMemoryNotAvailable();
+	drillingHashTable = new HashTable<DrillingRecord>(drillingLinkedList, hasher);
+	if (drillingHashTable == nullptr) throw new ExceptionMemoryNotAvailable();
 	delete list_to_purge;
 	list_to_purge = nullptr;
 }
@@ -153,11 +172,15 @@ void output(std::string option)
 	std::string output_string = "";
 	if (option == "o")
 	{
-		output_string = print_array();
+		output_string = array_to_string();
 	}
 	else if (option == "r")
 	{
-		output_string = print_linked_list();
+		output_string = linkedlist_to_string();
+	}
+	else if (option == "h")
+	{
+		output_string = hashtable_to_string();
 	}
 	print("Enter output file name: ");
 	do
@@ -188,8 +211,23 @@ void find()
 	int recordsfoundcounter = 0;
 	print("Enter search field (0-17): ");
 	std::cin >> columnnum;
-	DrillingRecordComparator comparator(columnnum);
 	DrillingRecord record = get_record_to_find(columnnum);
+	// if search based on timestamp, use hashtable
+	if (columnnum == 1)
+	{
+		try
+		{
+			DrillingRecord item = drillingHashTable->find(record);
+			std::cout << item;
+			print("Drilling records found: 1.\n");
+			return;			
+		}
+		catch(const ExceptionHashTableAccess e)
+		{
+			print("Drilling records found: 0.\n");
+		}
+	}
+	DrillingRecordComparator comparator(columnnum);
 	if (sort_column == columnnum)
 	{
 		firstindex = binarySearch(record, *drillingArray, comparator);		
@@ -406,7 +444,7 @@ DrillingRecord get_record_to_find(int column_num)
 /**
  * Returns a string representation of the records array
 */
-std::string print_array()
+std::string array_to_string()
 {
 	std::ostringstream oSS;
 	for (unsigned long i = 0; i < drillingArray->getSize(); i++)
@@ -414,13 +452,13 @@ std::string print_array()
 		DrillingRecord record = drillingArray->get(i);
 		oSS << record << "\n";
 	}
-	oSS << "Data lines read: " << data_lines_read << "; Valid Drilling records read: " << valid_records << "; Drilling records in memory: " << drillingArray->getSize() << "\n";
+	oSS << counters_to_string();
 	return oSS.str();
 }
 /**
  * Returns a string representation of the records linked list
 */
-std::string print_linked_list()
+std::string linkedlist_to_string()
 {
 	std::ostringstream oSS;
 	OULinkedListEnumerator<DrillingRecord> enumerator = drillingLinkedList->enumerator();
@@ -429,6 +467,45 @@ std::string print_linked_list()
 		DrillingRecord record = enumerator.next();
 		oSS << record << "\n";
 	}
+	oSS << counters_to_string();
+	return oSS.str();
+}
+/**
+ * Returns a string representation of the records hash table
+*/
+std::string hashtable_to_string()
+{
+	std::ostringstream oSS;
+	HashTableEnumerator<DrillingRecord>* enumerator = new HashTableEnumerator<DrillingRecord>(drillingHashTable);
+	// variables to discerne whether a certain record is in the overflow or not.
+    int current_bucket = 0;
+	int previous_bucket = -1;
+	while (enumerator->hasNext())
+	{
+		DrillingRecord record = enumerator->next();
+		if (current_bucket == previous_bucket)
+		{
+			oSS << "OVERFLOW: ";
+		}
+		else
+		{
+			oSS << current_bucket << ": ";
+		}
+		oSS << record << "\n";
+		previous_bucket = current_bucket;
+		current_bucket = hasher->hash(record) % drillingHashTable->getBaseCapacity();
+	}
+	oSS << "Base Capacity: " << drillingHashTable->getBaseCapacity() << "; Total Capacity: " << drillingHashTable->getTotalCapacity() << "; Load Factor: " << drillingHashTable->getLoadFactor() << "\n";
+	oSS << counters_to_string();
+	return oSS.str();
+}
+
+/**
+ * Returns a string representation of the data lines read, valid recrods read, and records in memory.
+*/
+std::string counters_to_string()
+{
+	std::ostringstream oSS;
 	oSS << "Data lines read: " << data_lines_read << "; Valid Drilling records read: " << valid_records << "; Drilling records in memory: " << drillingLinkedList->getSize() << "\n";
 	return oSS.str();
 }

@@ -42,6 +42,7 @@ public:
         unsigned long size,
         float maxLoadFactor = DEFAULT_MAX_LOAD_FACTOR,
         float minLoadFactor = DEFAULT_MIN_LOAD_FACTOR);
+    HashTable(OULinkedList<T>* linkedListToCopy, Hasher<T>* hasher);    // converts a linkedlist to a hashtable
     virtual ~HashTable();
 
     // if an equivalent item is not already present, insert item at proper location and return true
@@ -75,6 +76,7 @@ HashTable<T>::HashTable(Comparator<T>* comparator, Hasher<T>* hasher)
     this->comparator = comparator;
     this->hasher = hasher;
     table = new OULinkedList<T> *[DEFAULT_BASE_CAPACITY];
+    if (table == nullptr) throw new ExceptionMemoryNotAvailable();
 }
 
 template <typename T>
@@ -107,6 +109,32 @@ HashTable<T>::HashTable(Comparator<T>* comparator, Hasher<T>* Hasher
     }
     this->baseCapacity = SCHEDULE[scheduleIndex];
     table = new OULinkedList<T> *[this->baseCapacity];
+    if (table == nullptr) throw new ExceptionMemoryNotAvailable();
+}
+
+template <typename T>
+HashTable<T>::HashTable(OULinkedList<T>* linkedListToCopy, Hasher<T>* hasher)
+{
+    this->comparator = linkedListToCopy->comparator;
+    this->hasher = hasher;
+    this->baseCapacity = linkedListToCopy->getSize();
+    totalCapacity = baseCapacity;
+    size = baseCapacity;
+    // Delete previous data
+    for (unsigned long i = 0; i < baseCapacity; ++i)
+    {
+        delete table[i]; table[i] = nullptr;
+    }
+    delete[] table; table = nullptr;
+    // create new table
+    table = new OULinkedList<T> *[this->baseCapacity];
+    if (table == nullptr) throw new ExceptionMemoryNotAvailable();
+    OULinkedListEnumerator<T> enumerator = linkedListToCopy->enumerator();
+    while (enumerator.hasNext())
+    {
+        T item = enumerator.next();
+        table[getBucketNumber(item)]->insert(item);
+    }
 }
 
 template <typename T>
@@ -161,7 +189,16 @@ bool HashTable<T>::remove(T item)
 template <typename T>
 T HashTable<T>::find(T item) const
 {
-    return table[this->getBucketNumber(item)]->find(item);
+    T item;
+    try
+    {
+        item = table[this->getBucketNumber(item)]->find(item);
+    }
+    catch(const ExceptionLinkedListAccess& e)
+    {
+        throw new ExceptionHashTableAccess();
+    }
+    return item;
 }
 
 template <typename T>
@@ -232,5 +269,11 @@ void HashTable<T>::resizeTable(std::string option)
             }
         }
     }
+    for (unsigned long i = 0; i < baseCapacity; ++i)
+    {
+        delete table[i]; table[i] = nullptr;
+    }
+    delete[] table; table = nullptr;
+    table = tempTable;
 }
 #endif // !HASH_TABLE
