@@ -28,13 +28,17 @@ template <typename T>
 HashTableEnumerator<T>::HashTableEnumerator(HashTable<T>* hashTable)
 {
     this->hashTable = hashTable;
+    if (hashTable->getBaseCapacity() > 0)
+    {
+        OULinkedListEnumerator<T> temp_enumerator = hashTable->table[0]->enumerator();
+        chainEnumerator = &temp_enumerator;
+    }
 }
 
 template <typename T>
 HashTableEnumerator<T>::~HashTableEnumerator()
 {
     delete hashTable; hashTable = nullptr;
-    delete chainEnumerator; chainEnumerator = nullptr;
 }
 
 template <typename T>
@@ -58,7 +62,6 @@ T HashTableEnumerator<T>::next()
         OULinkedList<T>* linkedList = hashTable->table[i];
         if (linkedList->getSize() > 0)
         {
-            chainEnumerator = linkedList->enumerator();
             while (chainEnumerator->hasNext())
             {
                 return chainEnumerator->next();
@@ -77,7 +80,6 @@ T HashTableEnumerator<T>::peek() const
         OULinkedList<T>* linkedList = hashTable->table[i];
         if (linkedList->getSize() > 0)
         {
-            chainEnumerator = linkedList->enumerator();
             while (chainEnumerator->hasNext())
             {
                 return chainEnumerator->peek();

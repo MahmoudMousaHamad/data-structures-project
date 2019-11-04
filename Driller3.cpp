@@ -37,6 +37,7 @@ unsigned long data_lines_read;
 unsigned long valid_records;
 unsigned long stored_records;
 unsigned int sort_column = -1;
+DrillingRecordComparator* timestamp_comparator;
 // Functions definitions
 void user_option_loop();
 std::string array_to_string();
@@ -55,14 +56,14 @@ void merge();
 void purge();
 std::string linkedlist_to_string();
 std::string hashtable_to_string();
-std::string counters_to_string()
+std::string counters_to_string();
 
 int main()
 {
 	// Create master drilling linked list in heap
-	DrillingRecordComparator* comparator = new DrillingRecordComparator(1);
-    if (comparator == nullptr) throw new ExceptionMemoryNotAvailable();
-	drillingLinkedList = new OULinkedList<DrillingRecord>(comparator);
+	timestamp_comparator = new DrillingRecordComparator(1);
+    if (timestamp_comparator == nullptr) throw new ExceptionMemoryNotAvailable();
+	drillingLinkedList = new OULinkedList<DrillingRecord>(timestamp_comparator);
     if (drillingLinkedList == nullptr) throw new ExceptionMemoryNotAvailable();	
 	// Read first file
 	drillingLinkedList = read_file();
@@ -74,7 +75,7 @@ int main()
 	// Create drilling HashTable and hasher in heap
 	hasher = new DrillingRecordHasher();
 	if (hasher == nullptr) throw new ExceptionMemoryNotAvailable();
-	drillingHashTable = new HashTable<DrillingRecord>(drillingLinkedList, hasher);
+	drillingHashTable = new HashTable<DrillingRecord>(drillingLinkedList, hasher, timestamp_comparator);
 	if (drillingHashTable == nullptr) throw new ExceptionMemoryNotAvailable();
 	// Show menu
 	user_option_loop();
@@ -122,7 +123,7 @@ void merge()
 	}
 	drillingArray = new ResizableArray<DrillingRecord>(*drillingLinkedList);
     if (drillingArray == nullptr) throw new ExceptionMemoryNotAvailable();
-	drillingHashTable = new HashTable<DrillingRecord>(drillingLinkedList, hasher);
+	drillingHashTable = new HashTable<DrillingRecord>(drillingLinkedList, hasher, timestamp_comparator);
 	if (drillingHashTable == nullptr) throw new ExceptionMemoryNotAvailable();
 	delete list_to_merege;
 	list_to_merege = nullptr;
@@ -140,7 +141,7 @@ void purge()
 	}
 	drillingArray = new ResizableArray<DrillingRecord>(*drillingLinkedList);
     if (drillingArray == nullptr) throw new ExceptionMemoryNotAvailable();
-	drillingHashTable = new HashTable<DrillingRecord>(drillingLinkedList, hasher);
+	drillingHashTable = new HashTable<DrillingRecord>(drillingLinkedList, hasher, timestamp_comparator);
 	if (drillingHashTable == nullptr) throw new ExceptionMemoryNotAvailable();
 	delete list_to_purge;
 	list_to_purge = nullptr;
@@ -275,7 +276,7 @@ OULinkedList<DrillingRecord>* read_file()
 		// do not execute cin.ignore() if first file
 		if (last_file_ending_index_in_array != 0)
 		{
-		std::cin.ignore();
+			std::cin.ignore();
 		}
 		if (std::cin.peek() == '\n')
 		{
@@ -493,7 +494,7 @@ std::string hashtable_to_string()
 		}
 		oSS << record << "\n";
 		previous_bucket = current_bucket;
-		current_bucket = hasher->hash(record) % drillingHashTable->getBaseCapacity();
+		current_bucket = ((int) hasher->hash(record)) % ((int) drillingHashTable->getBaseCapacity());
 	}
 	oSS << "Base Capacity: " << drillingHashTable->getBaseCapacity() << "; Total Capacity: " << drillingHashTable->getTotalCapacity() << "; Load Factor: " << drillingHashTable->getLoadFactor() << "\n";
 	oSS << counters_to_string();

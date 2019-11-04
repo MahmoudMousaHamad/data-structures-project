@@ -42,7 +42,9 @@ public:
         unsigned long size,
         float maxLoadFactor = DEFAULT_MAX_LOAD_FACTOR,
         float minLoadFactor = DEFAULT_MIN_LOAD_FACTOR);
-    HashTable(OULinkedList<T>* linkedListToCopy, Hasher<T>* hasher);    // converts a linkedlist to a hashtable
+    HashTable(OULinkedList<T>* linkedListToCopy, 
+        Hasher<T>* hasher,
+        Comparator<T>* comparator);    // converts a linkedlist to a hashtable
     virtual ~HashTable();
 
     // if an equivalent item is not already present, insert item at proper location and return true
@@ -80,10 +82,10 @@ HashTable<T>::HashTable(Comparator<T>* comparator, Hasher<T>* hasher)
 }
 
 template <typename T>
-HashTable<T>::HashTable(Comparator<T>* comparator, Hasher<T>* Hasher
+HashTable<T>::HashTable(Comparator<T>* comparator, Hasher<T>* Hasher,
     unsigned long _size,
-    float maxLoadFactor = DEFAULT_MAX_LOAD_FACTOR,
-    float minLoadFactor = DEFAULT_MIN_LOAD_FACTOR)
+    float maxLoadFactor,
+    float minLoadFactor)
 {
     this->maxLoadFactor = maxLoadFactor;
     this->minLoadFactor = minLoadFactor;
@@ -113,9 +115,9 @@ HashTable<T>::HashTable(Comparator<T>* comparator, Hasher<T>* Hasher
 }
 
 template <typename T>
-HashTable<T>::HashTable(OULinkedList<T>* linkedListToCopy, Hasher<T>* hasher)
+HashTable<T>::HashTable(OULinkedList<T>* linkedListToCopy, Hasher<T>* hasher, Comparator<T>* comparator)
 {
-    this->comparator = linkedListToCopy->comparator;
+    this->comparator = comparator;
     this->hasher = hasher;
     this->baseCapacity = linkedListToCopy->getSize();
     totalCapacity = baseCapacity;
@@ -140,8 +142,6 @@ HashTable<T>::HashTable(OULinkedList<T>* linkedListToCopy, Hasher<T>* hasher)
 template <typename T>
 HashTable<T>::~HashTable()
 {
-    delete comparator; comparator = nullptr;
-    delete hasher; hasher = nullptr;
     for (unsigned long i = 0; i < baseCapacity; ++i)
     {
         delete table[i]; table[i] = nullptr;
@@ -189,16 +189,16 @@ bool HashTable<T>::remove(T item)
 template <typename T>
 T HashTable<T>::find(T item) const
 {
-    T item;
+    T _item;
     try
     {
-        item = table[this->getBucketNumber(item)]->find(item);
+        _item = table[this->getBucketNumber(item)]->find(item);
     }
     catch(const ExceptionLinkedListAccess& e)
     {
         throw new ExceptionHashTableAccess();
     }
-    return item;
+    return _item;
 }
 
 template <typename T>
@@ -222,7 +222,7 @@ unsigned long HashTable<T>::getTotalCapacity() const
 template <typename T>
 float HashTable<T>::getLoadFactor() const
 {
-    return this->size / this->totalCapacity;
+    return ((float) this->size) / ((float) this->totalCapacity);
 }
 
 template <typename T>
@@ -248,8 +248,8 @@ void HashTable<T>::resizeTable(std::string option)
     {
         return;
     }
-    baseCapacity = SCHEDULE_SIZE[scheduleIndex];
-    OULinkedList<T>** tempTable = new OULinkedList *[baseCapacity];
+    baseCapacity = SCHEDULE[scheduleIndex];    
+    OULinkedList<T>** tempTable = new OULinkedList<T> *[baseCapacity];
     for (unsigned int i = 0; i < size; ++i)
     {
         OULinkedList<T>* tempLinkedList = table[i];
@@ -261,7 +261,7 @@ void HashTable<T>::resizeTable(std::string option)
         }
         else 
         {
-            OULinkedListEnumerator enumerator = tempLinkedList->enumerator();
+            OULinkedListEnumerator<T> enumerator = tempLinkedList->enumerator();
             while (enumerator.hasNext())
             {
                 T item = enumerator.next();
