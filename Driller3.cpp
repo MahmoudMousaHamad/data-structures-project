@@ -75,7 +75,7 @@ int main()
 	// Create drilling HashTable and hasher in heap
 	hasher = new DrillingRecordHasher();
 	if (hasher == nullptr) throw new ExceptionMemoryNotAvailable();
-	drillingHashTable = new HashTable<DrillingRecord>(timestamp_comparator, hasher);
+	drillingHashTable = new HashTable<DrillingRecord>(timestamp_comparator, hasher, drillingLinkedList->getSize());
 	if (drillingHashTable == nullptr) throw new ExceptionMemoryNotAvailable();
 	OULinkedListEnumerator<DrillingRecord> enumerator = drillingLinkedList->enumerator();
 	while (enumerator.hasNext())
@@ -497,7 +497,7 @@ std::string hashtable_to_string()
 		{
 			oSS << current_bucket << ": ";
 		}
-		oSS << record << "\n";
+		oSS << record << "\n\n";
 		previous_bucket = current_bucket;
 		current_bucket = ((int) hasher->hash(record)) % ((int) drillingHashTable->getBaseCapacity());
 	}

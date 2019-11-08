@@ -78,15 +78,15 @@ HashTable<T>::HashTable(Comparator<T>* comparator, Hasher<T>* hasher)
     this->comparator = comparator;
     this->hasher = hasher;
     table = new OULinkedList<T> *[DEFAULT_BASE_CAPACITY];
+    if (table == nullptr) throw new ExceptionMemoryNotAvailable();
     for (unsigned long i = 0; i < DEFAULT_BASE_CAPACITY; ++i)
     {
         table[i] = nullptr;
     }
-    if (table == nullptr) throw new ExceptionMemoryNotAvailable();
 }
 
 template <typename T>
-HashTable<T>::HashTable(Comparator<T>* comparator, Hasher<T>* Hasher,
+HashTable<T>::HashTable(Comparator<T>* comparator, Hasher<T>* hasher,
     unsigned long _size,
     float maxLoadFactor,
     float minLoadFactor)
@@ -102,8 +102,8 @@ HashTable<T>::HashTable(Comparator<T>* comparator, Hasher<T>* Hasher,
         {
             if (SCHEDULE[i] > _size)
             {
-                if ((_size / SCHEDULE[i]) > maxLoadFactor) ++i;
-                if ((_size / SCHEDULE[i]) < minLoadFactor) --i;                
+                if ( ((float) _size / (float) SCHEDULE[i]) > maxLoadFactor) ++i;
+                if (((float) _size / (float) SCHEDULE[i]) < minLoadFactor) --i;                
                 scheduleIndex = i;
                 break;
             }
@@ -114,7 +114,12 @@ HashTable<T>::HashTable(Comparator<T>* comparator, Hasher<T>* Hasher,
         scheduleIndex = DEFAULT_SCHEDULE_INDEX;
     }
     this->baseCapacity = SCHEDULE[scheduleIndex];
+    this->totalCapacity = baseCapacity;
     table = new OULinkedList<T> *[this->baseCapacity];
+    for (unsigned long i = 0; i < DEFAULT_BASE_CAPACITY; ++i)
+    {
+        table[i] = nullptr;
+    }
     if (table == nullptr) throw new ExceptionMemoryNotAvailable();
 }
 
@@ -166,10 +171,10 @@ bool HashTable<T>::insert(T item)
     table[bucket_number]->insert(item);
     totalCapacity++;
     size++;
-    // if (getLoadFactor() > maxLoadFactor)
-    // {
-    //     resizeTable(EXPAND_RESIZE_OPTION);
-    // }
+    if (getLoadFactor() > maxLoadFactor)
+    {
+        resizeTable(EXPAND_RESIZE_OPTION);
+    }
     return collision_happened;
 }
 
