@@ -30,8 +30,11 @@ HashTableEnumerator<T>::HashTableEnumerator(HashTable<T>* hashTable)
     this->hashTable = hashTable;
     if (hashTable->getBaseCapacity() > 0)
     {
-        OULinkedListEnumerator<T> temp_enumerator = hashTable->table[0]->enumerator();
-        chainEnumerator = &temp_enumerator;
+        if (hashTable->table[0] != nullptr)
+        {
+            OULinkedListEnumerator<T> temp_enumerator = hashTable->table[0]->enumerator();
+            chainEnumerator = &temp_enumerator;
+        }
     }
 }
 
@@ -46,6 +49,7 @@ bool HashTableEnumerator<T>::hasNext() const
 {
     for (unsigned long i = bucket; i < hashTable->getBaseCapacity(); ++i)
     {
+        if (hashTable->table[i] == nullptr) continue;
         if (hashTable->table[i]->getSize() > 0)
         {
             return true;
@@ -60,13 +64,16 @@ T HashTableEnumerator<T>::next()
     for (unsigned long i = bucket; i < hashTable->getBaseCapacity(); ++i)
     {
         OULinkedList<T>* linkedList = hashTable->table[i];
+        if (linkedList == nullptr) continue;
         if (linkedList->getSize() > 0)
         {
+          OULinkedListEnumerator<T> temp_enumerator = linkedList->enumerator();
+        chainEnumerator = &temp_enumerator;
             while (chainEnumerator->hasNext())
             {
+                ++bucket;
                 return chainEnumerator->next();
             }
-            ++bucket;
         }
     }
     throw new ExceptionEnumerationBeyondEnd();

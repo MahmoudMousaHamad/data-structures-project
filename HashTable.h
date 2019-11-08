@@ -78,6 +78,10 @@ HashTable<T>::HashTable(Comparator<T>* comparator, Hasher<T>* hasher)
     this->comparator = comparator;
     this->hasher = hasher;
     table = new OULinkedList<T> *[DEFAULT_BASE_CAPACITY];
+    for (unsigned long i = 0; i < DEFAULT_BASE_CAPACITY; ++i)
+    {
+        table[i] = nullptr;
+    }
     if (table == nullptr) throw new ExceptionMemoryNotAvailable();
 }
 
@@ -153,14 +157,19 @@ template <typename T>
 bool HashTable<T>::insert(T item)
 {
     bool collision_happened = false;
-    if (table[this->getBucketNumber(item)]->getSize() == 0) collision_happened = true;
-    table[this->getBucketNumber(item)]->insert(item);
+    unsigned long bucket_number = this->getBucketNumber(item); 
+    if (table[bucket_number] == nullptr)
+    {
+        table[bucket_number] = new OULinkedList<T>(this->comparator);
+    }
+    if (table[bucket_number]->getSize() == 0) collision_happened = true;
+    table[bucket_number]->insert(item);
     totalCapacity++;
     size++;
-    if (getLoadFactor() > maxLoadFactor)
-    {
-        resizeTable(EXPAND_RESIZE_OPTION);
-    }
+    // if (getLoadFactor() > maxLoadFactor)
+    // {
+    //     resizeTable(EXPAND_RESIZE_OPTION);
+    // }
     return collision_happened;
 }
 

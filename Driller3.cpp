@@ -75,8 +75,13 @@ int main()
 	// Create drilling HashTable and hasher in heap
 	hasher = new DrillingRecordHasher();
 	if (hasher == nullptr) throw new ExceptionMemoryNotAvailable();
-	drillingHashTable = new HashTable<DrillingRecord>(drillingLinkedList, hasher, timestamp_comparator);
+	drillingHashTable = new HashTable<DrillingRecord>(timestamp_comparator, hasher);
 	if (drillingHashTable == nullptr) throw new ExceptionMemoryNotAvailable();
+	OULinkedListEnumerator<DrillingRecord> enumerator = drillingLinkedList->enumerator();
+	while (enumerator.hasNext())
+	{
+		drillingHashTable->insert(enumerator.next());
+	}
 	// Show menu
 	user_option_loop();
 	return 0;
@@ -430,7 +435,7 @@ DrillingRecord get_record_to_find(int column_num)
 	DrillingRecord record;
 	if (column_num >= 2)
 	{
-		print("Enter number on which to search: ");
+		print("Enter positive field value: ");
 		std::cin >> floatvalue;
 		record.setNum(floatvalue, column_num - 2);
 	}
