@@ -161,33 +161,45 @@ HashTable<T>::~HashTable()
 template <typename T>
 bool HashTable<T>::insert(T item)
 {
-    bool collision_happened = false;
+    bool insert_successful = false;
     unsigned long bucket_number = this->getBucketNumber(item); 
     if (table[bucket_number] == nullptr)
     {
         table[bucket_number] = new OULinkedList<T>(this->comparator);
     }
-    if (table[bucket_number]->getSize() == 0) collision_happened = true;
-    table[bucket_number]->insert(item);
-    totalCapacity++;
-    size++;
-    if (getLoadFactor() > maxLoadFactor)
+    insert_successful = table[bucket_number]->insert(item);
+    if (insert_successful)
     {
-        resizeTable(EXPAND_RESIZE_OPTION);
+        totalCapacity++;
+        size++;
+        if (getLoadFactor() > maxLoadFactor)
+        {
+            resizeTable(EXPAND_RESIZE_OPTION);
+        }
     }
-    return collision_happened;
+    return insert_successful;
 }
 
 template <typename T>
 bool HashTable<T>::replace(T item)
 {
+    unsigned long bucket_number = this->getBucketNumber(item); 
+    if (table[bucket_number] == nullptr)
+    {
+        table[bucket_number] = new OULinkedList<T>(this->comparator);
+    }
     return table[this->getBucketNumber(item)]->replace(item);
 }
 
 template <typename T>
 bool HashTable<T>::remove(T item)
 {
-    bool item_removed = table[this->getBucketNumber(item)]->remove(item);
+    unsigned long bucket_number = this->getBucketNumber(item); 
+    if (table[bucket_number] == nullptr)
+    {
+        table[bucket_number] = new OULinkedList<T>(this->comparator);
+    }
+    bool item_removed = table[bucket_number]->remove(item);
     if (item_removed)
     {
         totalCapacity--;
@@ -262,7 +274,8 @@ void HashTable<T>::resizeTable(std::string option)
     {
         return;
     }
-    baseCapacity = SCHEDULE[scheduleIndex];    
+    baseCapacity = SCHEDULE[scheduleIndex];
+    totalCapacity = baseCapacity;
     OULinkedList<T>** tempTable = new OULinkedList<T> *[baseCapacity];
     for (unsigned int i = 0; i < size; ++i)
     {
@@ -272,6 +285,7 @@ void HashTable<T>::resizeTable(std::string option)
         {
             T item = tempLinkedList->getFirst();
             tempTable[getBucketNumber(item)]->insert(item);
+            ++totalCapacity;
         }
         else 
         {
@@ -280,6 +294,7 @@ void HashTable<T>::resizeTable(std::string option)
             {
                 T item = enumerator.next();
                 tempTable[getBucketNumber(item)]->insert(item);
+                ++totalCapacity;
             }
         }
     }

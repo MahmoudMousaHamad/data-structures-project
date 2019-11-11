@@ -164,7 +164,7 @@ bool OULinkedList<T>::replace(T item)
 {
     if (first == NULL) return false;
     OULink<T>* current = first;
-    while (current->next != NULL)
+    do 
     {
         long result = comparator->compare(item, current->data);
         if (result < 0)
@@ -177,7 +177,8 @@ bool OULinkedList<T>::replace(T item)
             return true;
         }
         current = current->next;
-    }
+    } 
+    while (current->next != NULL);
     return false;
 }
 
@@ -287,7 +288,7 @@ bool OULinkedList<T>::contains(T item) const
         return false;
     }
     OULink<T>* current = first;
-    while (current->next != NULL)
+    do
     {
         long result = comparator->compare(item, current->data);
         if (result < 0)
@@ -300,6 +301,7 @@ bool OULinkedList<T>::contains(T item) const
         }
         current = current->next();
     }
+    while (current->next != NULL);
     return false;
 }
 
@@ -308,10 +310,10 @@ T OULinkedList<T>::find(T item) const
 {
     if (first == NULL)
     {
-        throw new ExceptionLinkedListAccess();
+      throw new ExceptionLinkedListAccess();
     }
     OULink<T>* current = first;
-    while (current->next != NULL)
+    do
     {
         long result = comparator->compare(item, current->data);
         if (result < 0)
@@ -324,6 +326,7 @@ T OULinkedList<T>::find(T item) const
         }
         current = current->next;
     }
+    while (current->next != NULL);
     throw new ExceptionLinkedListAccess();
 }
 
