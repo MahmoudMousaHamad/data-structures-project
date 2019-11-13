@@ -28,7 +28,7 @@ template <typename T>
 HashTableEnumerator<T>::HashTableEnumerator(HashTable<T>* hashTable)
 {
     this->hashTable = hashTable;
-    if (hashTable->getBaseCapacity() == 0)
+    if (hashTable->getSize() == 0)
     {
         throw new ExceptionHashTableAccess();
     }
@@ -38,8 +38,7 @@ HashTableEnumerator<T>::HashTableEnumerator(HashTable<T>* hashTable)
         {
             if (hashTable->table[i]->getSize() > 0)
             {
-                OULinkedListEnumerator<T> temp_enumerator = hashTable->table[i]->enumerator();
-                chainEnumerator = &temp_enumerator;
+                chainEnumerator = new OULinkedListEnumerator<T>(hashTable->table[i]->enumerator());
                 bucket = i;
                 break;
             }
@@ -57,7 +56,11 @@ HashTableEnumerator<T>::~HashTableEnumerator()
 template <typename T>
 bool HashTableEnumerator<T>::hasNext() const
 {
-    for (unsigned long i = bucket; i < hashTable->getBaseCapacity(); ++i)
+  if (chainEnumerator->hasNext())
+  {
+    return true;
+  }
+    for (unsigned long i = bucket + 1; i < hashTable->getBaseCapacity(); ++i)
     {
         OULinkedList<T>* linkedList = hashTable->table[i];
         if (linkedList == nullptr) continue;
@@ -76,18 +79,19 @@ bool HashTableEnumerator<T>::hasNext() const
 template <typename T>
 T HashTableEnumerator<T>::next()
 {
-    for (unsigned long i = bucket; i < hashTable->getBaseCapacity(); ++i)
+  if (chainEnumerator->hasNext())
+  {
+    return chainEnumerator->next();
+  }
+    for (unsigned long i = bucket+1; i < hashTable->getBaseCapacity(); ++i)
     {
         OULinkedList<T>* linkedList = hashTable->table[i];
         if (linkedList == nullptr) continue;
-        if (linkedList->getSize() > 0)
+        if (linkedList->enumerator().hasNext())
         {
-          OULinkedListEnumerator<T> temp_enumerator = linkedList->enumerator();
-        chainEnumerator = &temp_enumerator;
-            while (chainEnumerator->hasNext())
-            {
-                return chainEnumerator->next();
-            }
+          bucket = i;
+          chainEnumerator = new OULinkedListEnumerator<T>(linkedList->enumerator());
+          return chainEnumerator->next();
         }
     }
     throw new ExceptionEnumerationBeyondEnd();
@@ -96,15 +100,18 @@ T HashTableEnumerator<T>::next()
 template <typename T>
 T HashTableEnumerator<T>::peek() const
 {
-    for (unsigned long i = bucket; i < hashTable->getBaseCapacity(); ++i)
+    if (chainEnumerator->hasNext())
+    {
+        return chainEnumerator->peek();
+    }
+    for (unsigned long i = bucket+1; i < hashTable->getBaseCapacity(); ++i)
     {
         OULinkedList<T>* linkedList = hashTable->table[i];
-        if (linkedList->getSize() > 0)
+        // std::cout << "Bucket: " << bucket << "\n";
+        if (linkedList == nullptr) continue;
+        if (linkedList->enumerator().hasNext())
         {
-            while (chainEnumerator->hasNext())
-            {
-                return chainEnumerator->peek();
-            }
+          return linkedList->enumerator().peek();
         }
     }
     throw new ExceptionEnumerationBeyondEnd();

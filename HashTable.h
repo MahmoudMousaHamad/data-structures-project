@@ -167,11 +167,15 @@ bool HashTable<T>::insert(T item)
     {
         table[bucket_number] = new OULinkedList<T>(this->comparator);
     }
+    // error on the line right below
     insert_successful = table[bucket_number]->insert(item);
     if (insert_successful)
     {
-        totalCapacity++;
         size++;
+        if (table[bucket_number]->getSize() > 1)
+        {
+            totalCapacity++;
+        }
         if (getLoadFactor() > maxLoadFactor)
         {
             resizeTable(EXPAND_RESIZE_OPTION);
@@ -202,8 +206,11 @@ bool HashTable<T>::remove(T item)
     bool item_removed = table[bucket_number]->remove(item);
     if (item_removed)
     {
-        totalCapacity--;
         size--;
+        if (table[bucket_number]->getSize() <= 1)
+        {
+            totalCapacity--;
+        }
         if (getLoadFactor() < minLoadFactor)
         {
             resizeTable(SHRINK_RESIZE_OPTION);
@@ -215,6 +222,10 @@ bool HashTable<T>::remove(T item)
 template <typename T>
 T HashTable<T>::find(T item) const
 {
+    if (size == 0)
+    {
+        throw new ExceptionHashTableAccess();
+    }
     T _item;
     try
     {
