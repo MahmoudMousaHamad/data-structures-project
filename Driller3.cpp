@@ -128,7 +128,13 @@ void merge()
 	}
 	drillingArray = new ResizableArray<DrillingRecord>(*drillingLinkedList);
     if (drillingArray == nullptr) throw new ExceptionMemoryNotAvailable();
-	drillingHashTable = new HashTable<DrillingRecord>(drillingLinkedList, hasher, timestamp_comparator);
+	drillingHashTable = new HashTable<DrillingRecord>(timestamp_comparator, hasher, drillingLinkedList->getSize());
+	if (drillingHashTable == nullptr) throw new ExceptionMemoryNotAvailable();
+	OULinkedListEnumerator<DrillingRecord> enumerator = drillingLinkedList->enumerator();
+	while (enumerator.hasNext())
+	{
+		drillingHashTable->insert(enumerator.next());
+	}
 	if (drillingHashTable == nullptr) throw new ExceptionMemoryNotAvailable();
 	delete list_to_merege;
 	list_to_merege = nullptr;
@@ -146,7 +152,13 @@ void purge()
 	}
 	drillingArray = new ResizableArray<DrillingRecord>(*drillingLinkedList);
     if (drillingArray == nullptr) throw new ExceptionMemoryNotAvailable();
-	drillingHashTable = new HashTable<DrillingRecord>(drillingLinkedList, hasher, timestamp_comparator);
+	drillingHashTable = new HashTable<DrillingRecord>(timestamp_comparator, hasher, drillingLinkedList->getSize());
+	if (drillingHashTable == nullptr) throw new ExceptionMemoryNotAvailable();
+	OULinkedListEnumerator<DrillingRecord> enumerator = drillingLinkedList->enumerator();
+	while (enumerator.hasNext())
+	{
+		drillingHashTable->insert(enumerator.next());
+	}
 	if (drillingHashTable == nullptr) throw new ExceptionMemoryNotAvailable();
 	delete list_to_purge;
 	list_to_purge = nullptr;
