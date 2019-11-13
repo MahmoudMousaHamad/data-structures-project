@@ -116,7 +116,7 @@ HashTable<T>::HashTable(Comparator<T>* comparator, Hasher<T>* hasher,
     this->baseCapacity = SCHEDULE[scheduleIndex];
     this->totalCapacity = baseCapacity;
     table = new OULinkedList<T> *[this->baseCapacity];
-    for (unsigned long i = 0; i < DEFAULT_BASE_CAPACITY; ++i)
+    for (unsigned long i = 0; i < baseCapacity; ++i)
     {
         table[i] = nullptr;
     }
