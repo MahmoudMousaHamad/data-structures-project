@@ -16,7 +16,7 @@ private:
     std::stack<const AVLTree<T>*> traversalStack;
     void buildTraversalStack(const AVLTree<T>* current);
 public:
-    AVLTreeEnumerator(const AVLTree<T>* root, AVLTreeOrder order = AVLTreeOrder.inorder);
+    AVLTreeEnumerator(const AVLTree<T>* root, AVLTreeOrder order = AVLTreeOrder::inorder);
     virtual ~AVLTreeEnumerator();
     bool hasNext() const;
     T next();                        // throws ExceptionEnumerationBeyondEnd if no next item is available

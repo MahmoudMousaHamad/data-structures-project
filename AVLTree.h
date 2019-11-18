@@ -77,7 +77,7 @@ bool AVLTree<T>::insert(const T item)
             left = new AVLTree<T>(comparator);
             left->data = item;
             size++;
-            diff--;
+            diff--; // check this
             return true;
         }
         else
@@ -97,7 +97,7 @@ bool AVLTree<T>::insert(const T item)
             right = new AVLTree<T>(comparator);
             right->data = item;
             size++;
-            diff++;
+            diff++; // check this
             return true;
         }
         else
@@ -144,10 +144,12 @@ bool AVLTree<T>::replace(const T item)
     return true;
 }
 
+// Check this
 template <typename T>
 bool AVLTree<T>::remove(const T item)
 {
     long result = comparator->compare(item, data);
+    int old_diff = 0;
     if (result < 0)
     {
         if (left == nullptr)
@@ -156,8 +158,12 @@ bool AVLTree<T>::remove(const T item)
         }
         else
         {
-            diff++;
+            old_diff = left->diff;
             left->remove(item);
+            if (old_diff != left->diff && left->diff != 0)
+            {
+                diff++;
+            }
         }
     }
     else if (result > 0)
@@ -168,8 +174,12 @@ bool AVLTree<T>::remove(const T item)
         }
         else
         {
-            diff--;
+            old_diff = right->diff;
             right->remove(item);
+            if (old_diff != right->diff && right->diff != 0)
+            {
+                diff--;
+            }
         }
     }
     // Leaf node
@@ -185,7 +195,7 @@ bool AVLTree<T>::remove(const T item)
         left = left->left;
         right = left->right;
         delete left;
-        left = nullptr;
+        diff++;
     }
     // Has right node
     else if (right != nullptr)
@@ -196,6 +206,7 @@ bool AVLTree<T>::remove(const T item)
             data = right->data;
             delete right;
             right = nullptr;
+            diff--;
         }
         // Right only has right subtree
         else if (right->right != nullptr && right->left == nullptr)
@@ -203,7 +214,7 @@ bool AVLTree<T>::remove(const T item)
             data = right->data;
             right = right->right;
             delete right;
-            right = nullptr;
+            diff--;
         }
         // Right subtree has left subtree
         else
@@ -219,10 +230,12 @@ bool AVLTree<T>::remove(const T item)
                     break;
                 }
                 temp = temp->left;
+                temp->diff++;
             }
             if (right->left == nullptr)
             {
                 right = nullptr;
+                diff--;
             }
             data = temp->data;
             delete temp;
