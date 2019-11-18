@@ -62,6 +62,14 @@ template <typename T>
 AVLTree<T>::~AVLTree()
 {
     delete comparator; comparator = nullptr;
+    if (left != nullptr)
+    {
+        delete left;
+    }
+    if (right != nullptr)
+    {
+        delete right;
+    }
     left = nullptr; right = nullptr;
 }
 
@@ -82,7 +90,6 @@ bool AVLTree<T>::insert(const T item)
             left = new AVLTree<T>(comparator);
             left->data = item;
             size++;
-            diff--; // check this
             return true;
         }
         else
@@ -102,7 +109,6 @@ bool AVLTree<T>::insert(const T item)
             right = new AVLTree<T>(comparator);
             right->data = item;
             size++;
-            diff++; // check this
             return true;
         }
         else
