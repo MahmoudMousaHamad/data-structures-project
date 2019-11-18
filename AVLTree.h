@@ -68,6 +68,11 @@ AVLTree<T>::~AVLTree()
 template <typename T>
 bool AVLTree<T>::insert(const T item)
 {
+    if (empty)
+    {
+        data = item;
+        empty = false;
+    }
     long result = comparator->compare(item, data);
     int old_diff = 0;
     if (result < 0)
@@ -117,6 +122,10 @@ bool AVLTree<T>::insert(const T item)
 template <typename T>
 bool AVLTree<T>::replace(const T item)
 {
+    if (empty)
+    {
+        return false;
+    }
     long result = comparator->compare(item, data);
     if (result < 0)
     {
@@ -148,6 +157,11 @@ bool AVLTree<T>::replace(const T item)
 template <typename T>
 bool AVLTree<T>::remove(const T item)
 {
+    if (empty)
+    {
+        return false;
+    }
+
     long result = comparator->compare(item, data);
     int old_diff = 0;
     if (result < 0)
@@ -249,6 +263,11 @@ bool AVLTree<T>::remove(const T item)
 template <typename T>
 bool AVLTree<T>::contains(T item) const
 {
+    if (empty)
+    {
+        return false;
+    }
+
     long result = comparator->compare(item, data);
     if (result < 0)
     {
@@ -278,6 +297,11 @@ bool AVLTree<T>::contains(T item) const
 template <typename T>
 T AVLTree<T>::find(const T item) const
 {
+    if (empty)
+    {
+        throw new ExceptionAVLTreeAccess();
+    }
+
     long result = comparator->compare(item, data);
     if (result < 0)
     {
