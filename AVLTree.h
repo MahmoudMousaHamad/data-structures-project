@@ -378,21 +378,67 @@ void AVLTree<T>::zig()
     {
         return;
     }
-    AVLTree<T> left_temp = left;
-    left = left_temp->right;
-    left_temp->left = this;
+
+	int gdiff = diff; 
+	int pdiff = left->diff;
+
+	AVLTree<T>* left_temp = left;
+	left = right_temp->right;
+	left_temp->left = left_temp->right;
+	left_temp->right = right;
+
+	// Swap data
+	T temp_data = left->data;
+	left->data = data;
+	data = temp_data;
+
+	if (pdiff < 0) 
+	{ 
+		right->diff = gdiff - pdiff + 1;
+		diff = gdiff + 2; 
+	}
+	else 
+	{ 
+		diff = 1 + pdiff; 
+		right->diff = 1 + gdiff; 
+	}
 }
 
 template <typename T>
 void AVLTree<T>::zag()
 {
+	if (empty)
+	{
+		return;
+	}
     if (right == nullptr)
     {
         return;
     }
+
+	int gdiff = diff;
+	int pdiff = right->diff;
+
     AVLTree<T>* right_temp = right;
     right = right_temp->left;
-    right_temp->left = this;
+    right_temp->right = right_temp->left;
+	right_temp->left = left;
+
+	// Swap data
+	T temp_data = right->data;
+	right->data = data;
+	data = temp_data;
+
+	if (pdiff < 0)
+	{
+		left->diff = gdiff - pdiff + 1;
+		diff = gdiff + 2;
+	}
+	else
+	{
+		diff = 1 + pdiff;
+		left->diff = 1 + gdiff;
+	}
 }
 
 template <typename T>
