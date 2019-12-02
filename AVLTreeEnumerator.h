@@ -1,7 +1,7 @@
 #ifndef AVL_TREE_ENUMERATOR
 #define AVL_TREE_ENUMERATOR
 
-#include <queue>
+#include <stack>
 #include "Enumerator.h"
 #include "AVLTreeOrder.h"
 
@@ -13,7 +13,7 @@ class AVLTreeEnumerator : public Enumerator<T>
 {
 private:
     AVLTreeOrder order;
-    std::queue<const AVLTree<T>*> traversalQueue;
+    std::stack<const AVLTree<T>*> traversalStack;
     void buildTraversalStack(const AVLTree<T>* current);        // What does this function do?
 public:
     AVLTreeEnumerator(const AVLTree<T>* root, AVLTreeOrder order = AVLTreeOrder::inorder);
@@ -23,6 +23,9 @@ public:
     T peek() const;                  // throws ExceptionEnumerationBeyondEnd if no next item is available
     AVLTreeOrder getOrder();         // returns the order of this enumerator (preorder, inorder, or postorder)
 };
+
+
+// Add your implementation below this line.
 
 template <typename T>
 AVLTreeEnumerator<T>::AVLTreeEnumerator(const AVLTree<T>* root, AVLTreeOrder order)
@@ -54,53 +57,73 @@ void AVLTreeEnumerator<T>::buildTraversalStack(const AVLTree<T>* current)
                 current = current->left;
             }
             current = tempStack.pop();
-            traversalQueue.push(current);
+			traversalStack.push(current);
             current = current->right;
         }
     }
     else if (order == AVLTreeOrder::postorder)
     {
-        while (current != nullptr || !tempStack.empty())
-        {
-            // get left-most node
-            while (current != nullptr)
-            {
-                if (current->right)
-                {
-                    tempStack.push(current->right);
-                }
-                tempStack.push(current);
-                current = current->left;
-            }
-            current = tempStack.pop();
-            if (current->right && tempStack.top() == current->right)
-            {
-                tempStack.pop();
-                tempStack.push(current);
-                current = current->right;
-            }
-            else
-            {
-                traversalQueue.push(current);
-            }
-        }
+		while (current != nullptr || !tempStack.empty())
+		{
+			// get left-most node
+			while (current != nullptr)
+			{
+				tempStack.push(current);
+				current = current->left;
+			}
+			traversalStack.push(current);
+			current = tempStack.pop();
+			current = current->right;
+		}
     }
     else if (order == AVLTreeOrder::preorder)
     {
-        
+		while (current != nullptr || !tempStack.empty())
+		{
+			// get left-most node
+			while (current != nullptr)
+			{
+				tempStack.push(current);
+				traversalStack.push(current);
+				current = current->left;
+			}
+			current = tempStack.pop();
+			current = current->right;
+		}
     }
 }
 
 template <typename T>
-bool AVLTreeEnumerator<T>::hasNext()
+bool AVLTreeEnumerator<T>::hasNext() const
 {
-    bool has_next = false;
-    
-    return false;
+    return traversalStack.size() > 0;
 }
 
-// Add your implementation below this line.
+template <typename T>
+T AVLTreeEnumerator<T>::next()
+{
+	if (traversalStack.size() == 0)
+	{
+		throw new ExceptionEnumerationBeyondEnd();
+	}
+	return traversalStack.pop();
+}
 
+template <typename T>
+T AVLTreeEnumerator<T>::peek() const
+{
+	if (traversalStack.size() == 0)
+	{
+		throw new ExceptionEnumerationBeyondEnd();
+	}
+	return traversalStack.peek();
+}
+
+template <typename T>
+AVLTreeOrder AVLTreeEnumerator<T>::getOrder()
+{
+	return order;
+}
 
 
 #endif // !AVL_TREE_ENUMERATOR
