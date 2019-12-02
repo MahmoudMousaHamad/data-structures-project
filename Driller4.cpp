@@ -9,16 +9,17 @@
 #include "Comparator.h"
 #include "DrillingRecordComparator.h"
 #include "OULink.h"
-#include "OULinkedList.h"
-#include "OULinkedListEnumerator.h"
 #include "DrillingRecordHasher.h"
 #include "HashTable.h"
 #include "HashTableEnumerator.h"
+#include "AVLTree.h"
+#include "AVLTreeEnumerator.h"
+#include "AVLTreeOrder.h"
 
 // Resizable array that stores the records
 ResizableArray<DrillingRecord>* drillingArray;
-// LinkedList that stores the records
-OULinkedList<DrillingRecord>* drillingLinkedList;
+// AVL Tree that stores the records
+AVLTree<DrillingRecord>* drillingAVLTree;
 // HashTable that stores the records
 HashTable<DrillingRecord>* drillingHashTable;
 // Drilling Hasher
@@ -41,43 +42,43 @@ DrillingRecordComparator* timestamp_comparator;
 // Functions definitions
 void user_option_loop();
 std::string array_to_string();
-void read_line(std::string line, std::ifstream& datafile, OULinkedList<DrillingRecord>& linkedList);
-std::string check_record(DrillingRecord record, OULinkedList<DrillingRecord>& linkedList);
+void read_line(std::string line, std::ifstream& datafile, AVLTree<DrillingRecord>& avlTree);
+std::string check_record(DrillingRecord record, AVLTree<DrillingRecord>& avlTree);
 bool check_data(DrillingRecord record);
 void print(std::string output);
 void sort_array(int column_num);
 DrillingRecord get_record_to_find(int column_num);
-OULinkedList<DrillingRecord>* read_file();
+AVLTree<DrillingRecord>* read_file();
 void output(std::string option);
 void quit();
 void sort();
 void find();
 void merge();
 void purge();
-std::string linkedlist_to_string();
+std::string avlTree_to_string();
 std::string hashtable_to_string();
 std::string counters_to_string();
 
 int main()
 {
-	// Create master drilling linked list in heap
+	// Create master drilling AVLTree in heap
 	timestamp_comparator = new DrillingRecordComparator(1);
     if (timestamp_comparator == nullptr) throw new ExceptionMemoryNotAvailable();
-	drillingLinkedList = new OULinkedList<DrillingRecord>(timestamp_comparator);
-    if (drillingLinkedList == nullptr) throw new ExceptionMemoryNotAvailable();	
+	drillingAVLTree = new AVLTree<DrillingRecord>(timestamp_comparator);
+    if (drillingAVLTree == nullptr) throw new ExceptionMemoryNotAvailable();
 	// Read first file
-	drillingLinkedList = read_file();
+	drillingAVLTree = read_file();
 	// Make sure that we actually read something
-	if (drillingLinkedList->getSize() == 0) return 0;
+	if (drillingAVLTree->getSize() == 0) return 0;
 	// Create drilling resizable array
-	drillingArray = new ResizableArray<DrillingRecord>(*drillingLinkedList);
+	drillingArray = new ResizableArray<DrillingRecord>(*drillingAVLTree);
     if (drillingArray == nullptr) throw new ExceptionMemoryNotAvailable();
 	// Create drilling HashTable and hasher in heap
 	hasher = new DrillingRecordHasher();
 	if (hasher == nullptr) throw new ExceptionMemoryNotAvailable();
-	drillingHashTable = new HashTable<DrillingRecord>(timestamp_comparator, hasher, drillingLinkedList->getSize());
+	drillingHashTable = new HashTable<DrillingRecord>(timestamp_comparator, hasher, drillingAVLTree->getSize());
 	if (drillingHashTable == nullptr) throw new ExceptionMemoryNotAvailable();
-	OULinkedListEnumerator<DrillingRecord> enumerator = drillingLinkedList->enumerator();
+	AVLTreeEnumerator<DrillingRecord> enumerator(drillingAVLTree);
 	while (enumerator.hasNext())
 	{
 		drillingHashTable->insert(enumerator.next());
@@ -113,24 +114,24 @@ void user_option_loop()
  * */
 void merge()
 {
-	OULinkedList<DrillingRecord>* list_to_merege = read_file();
-	OULinkedListEnumerator<DrillingRecord> enumerator_to_merge = list_to_merege->enumerator();
+	AVLTree<DrillingRecord>* list_to_merege = read_file();
+	AVLTreeEnumerator<DrillingRecord> enumerator_to_merge = list_to_merege->enumerator();
 	while (enumerator_to_merge.hasNext())
 	{
 		try
 		{
-			drillingLinkedList->insert(enumerator_to_merge.next());
+			drillingAVLTree->insert(enumerator_to_merge.next());
 		}
 		catch(const ExceptionMemoryNotAvailable& e)
 		{
 			print("No memory available");
 		}
 	}
-	drillingArray = new ResizableArray<DrillingRecord>(*drillingLinkedList);
+	drillingArray = new ResizableArray<DrillingRecord>(*drillingAVLTree);
     if (drillingArray == nullptr) throw new ExceptionMemoryNotAvailable();
-	drillingHashTable = new HashTable<DrillingRecord>(timestamp_comparator, hasher, drillingLinkedList->getSize());
+	drillingHashTable = new HashTable<DrillingRecord>(timestamp_comparator, hasher, drillingAVLTree->getSize());
 	if (drillingHashTable == nullptr) throw new ExceptionMemoryNotAvailable();
-	OULinkedListEnumerator<DrillingRecord> enumerator = drillingLinkedList->enumerator();
+	AVLTreeEnumerator<DrillingRecord> enumerator = drillingAVLTree->enumerator();
 	while (enumerator.hasNext())
 	{
 		drillingHashTable->insert(enumerator.next());
@@ -144,17 +145,17 @@ void merge()
  * */
 void purge()
 {
-	OULinkedList<DrillingRecord>* list_to_purge = read_file();
-	OULinkedListEnumerator<DrillingRecord> enumerator_to_purge = list_to_purge->enumerator();
+	AVLTree<DrillingRecord>* list_to_purge = read_file();
+	AVLTreeEnumerator<DrillingRecord> enumerator_to_purge = list_to_purge->enumerator();
 	while (enumerator_to_purge.hasNext())
 	{
-		drillingLinkedList->remove(enumerator_to_purge.next());
+		drillingAVLTree->remove(enumerator_to_purge.next());
 	}
-	drillingArray = new ResizableArray<DrillingRecord>(*drillingLinkedList);
+	drillingArray = new ResizableArray<DrillingRecord>(*drillingAVLTree);
     if (drillingArray == nullptr) throw new ExceptionMemoryNotAvailable();
-	drillingHashTable = new HashTable<DrillingRecord>(timestamp_comparator, hasher, drillingLinkedList->getSize());
+	drillingHashTable = new HashTable<DrillingRecord>(timestamp_comparator, hasher, drillingAVLTree->getSize());
 	if (drillingHashTable == nullptr) throw new ExceptionMemoryNotAvailable();
-	OULinkedListEnumerator<DrillingRecord> enumerator = drillingLinkedList->enumerator();
+	AVLTreeEnumerator<DrillingRecord> enumerator = drillingAVLTree->enumerator();
 	while (enumerator.hasNext())
 	{
 		drillingHashTable->insert(enumerator.next());
@@ -181,7 +182,7 @@ void quit()
 	print("Thanks for using Driller.\n");
 }
 /**
- * Outputs the content of the resizable array or linked list to a file or cout
+ * Outputs the content of the resizable array or AVL Tree to a file or cout
 */
 void output(std::string option)
 {
@@ -194,7 +195,7 @@ void output(std::string option)
 	}
 	else if (option == "r")
 	{
-		output_string = linkedlist_to_string();
+		output_string = avlTree_to_string();
 	}
 	else if (option == "h")
 	{
@@ -275,14 +276,14 @@ void find()
 	print("Drilling records found: " + std::to_string(recordsfoundcounter) + ".\n");
 }
 /**
- * Reads a file, checks its records and then returns a linked list
+ * Reads a file, checks its records and then returns an AVL Tree
  * */
-OULinkedList<DrillingRecord>* read_file()
+AVLTree<DrillingRecord>* read_file()
 {
 	DrillingRecordComparator* comparator = new DrillingRecordComparator(1);
     if (comparator == nullptr) throw new ExceptionMemoryNotAvailable();
-	OULinkedList<DrillingRecord>* tempLinkedList = new OULinkedList<DrillingRecord>(comparator);
-    if (tempLinkedList == nullptr) throw new ExceptionMemoryNotAvailable();
+	AVLTree<DrillingRecord>* tempAVLTree = new AVLTree<DrillingRecord>(comparator);
+    if (tempAVLTree == nullptr) throw new ExceptionMemoryNotAvailable();
 	do
 	{
 		std::string filename = "";
@@ -307,16 +308,16 @@ OULinkedList<DrillingRecord>* read_file()
 			std::getline(datafile, line);
 			while (std::getline(datafile, line))
 			{
-				read_line(line, datafile, *tempLinkedList);
+				read_line(line, datafile, *tempAVLTree);
 			}
 			datafile.close();
 			// check if any records were read.
-			if (tempLinkedList->getSize() == last_file_ending_index_in_array)
+			if (tempAVLTree->getSize() == last_file_ending_index_in_array)
 			{
 				print("No valid records found.\n");
 			}
 			// update the last_file_ending_index_in_array for later use.
-			last_file_ending_index_in_array = tempLinkedList->getSize();
+			last_file_ending_index_in_array = tempAVLTree->getSize();
 			break;
 		}
 		else 
@@ -324,12 +325,12 @@ OULinkedList<DrillingRecord>* read_file()
 			print("File is not available.\n");
 		}
 	}  while (true);
-	return tempLinkedList;
+	return tempAVLTree;
 }
 /**
- * Reads a single line and, if valid, stores it in the LinkedList
+ * Reads a single line and, if valid, stores it in the AVLTree
  * */
-void read_line(std::string line, std::ifstream& datafile, OULinkedList<DrillingRecord>& linkedList)
+void read_line(std::string line, std::ifstream& datafile, AVLTree<DrillingRecord>& avlTree)
 {
 	line_counter++;
 	// parse input
@@ -357,12 +358,12 @@ void read_line(std::string line, std::ifstream& datafile, OULinkedList<DrillingR
 		columnCounter++;
 	}
 	data_lines_read++;
-	recordvalidity = check_record(currentRecord, linkedList);
+	recordvalidity = check_record(currentRecord, avlTree);
 	if (recordvalidity == VALID_RECORD)
 	{
 		try
 		{
-			linkedList.insert(currentRecord);			
+			avlTree.insert(currentRecord);			
 		}
 		catch(const ExceptionMemoryNotAvailable& e)
 		{
@@ -376,14 +377,14 @@ void read_line(std::string line, std::ifstream& datafile, OULinkedList<DrillingR
 	}
 }
 /**
- * Checks the validity of a DrillingRecord object within a linked list
+ * Checks the validity of a DrillingRecord object within an AVL Tree
 */
-std::string check_record(DrillingRecord record, OULinkedList<DrillingRecord>& linkedList)
+std::string check_record(DrillingRecord record, AVLTree<DrillingRecord>& avlTree)
 { 
-	if (linkedList.getSize() > 0)
+	if (avlTree.getSize() > 0)
 	{
 		// check date
-		if (linkedList.getFirst().getString(0) != record.getString(0))
+		if (avlTree.getFirst().getString(0) != record.getString(0))
 		{
 			return INVALID_DATE;
 		}
@@ -395,7 +396,7 @@ std::string check_record(DrillingRecord record, OULinkedList<DrillingRecord>& li
 		return INVALID_DATA;
 	}
 	// check timestamp
-	OULinkedListEnumerator<DrillingRecord> enumerator = linkedList.enumerator();
+	AVLTreeEnumerator<DrillingRecord> enumerator = avlTree.enumerator();
 	unsigned long counter = 0;
 	while (enumerator.hasNext())
 	{
@@ -403,7 +404,7 @@ std::string check_record(DrillingRecord record, OULinkedList<DrillingRecord>& li
 		{
 			if (counter < last_file_ending_index_in_array)
 			{
-				linkedList.replace(record);
+				avlTree.replace(record);
 				break;
 			}
 			print("Duplicate timestamp " + record.getString(1) + " at line " + std::to_string(line_counter) + ".\n");
@@ -474,12 +475,12 @@ std::string array_to_string()
 	return oSS.str();
 }
 /**
- * Returns a string representation of the records linked list
+ * Returns a string representation of the records AVL Tree
 */
-std::string linkedlist_to_string()
+std::string avlTree_to_string(AVLTreeOrder order)
 {
 	std::ostringstream oSS;
-	OULinkedListEnumerator<DrillingRecord> enumerator = drillingLinkedList->enumerator();
+	AVLTreeEnumerator<DrillingRecord> enumerator(drillingAVLTree, order);
 	while (enumerator.hasNext())
 	{
 		DrillingRecord record = enumerator.next();
@@ -524,7 +525,7 @@ std::string hashtable_to_string()
 std::string counters_to_string()
 {
 	std::ostringstream oSS;
-	oSS << "Data lines read: " << data_lines_read << "; Valid Drilling records read: " << valid_records << "; Drilling records in memory: " << drillingLinkedList->getSize() << "\n";
+	oSS << "Data lines read: " << data_lines_read << "; Valid Drilling records read: " << valid_records << "; Drilling records in memory: " << drillingAVLTree->getSize() << "\n";
 	return oSS.str();
 }
 /**
