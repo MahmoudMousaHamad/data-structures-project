@@ -5,6 +5,7 @@
 #include "OULink.h"
 #include "OULinkedList.h"
 #include "OULinkedListEnumerator.h"
+#include "AVLTree.h"
 
 const unsigned long DEFAULT_ARRAY_CAPACITY = 10;        // capacity used in no arg constructor
 
@@ -19,7 +20,8 @@ private:
 public:
     ResizableArray();                                   // constructs array with default capacity
     ResizableArray(unsigned long capacity);             // constructs array with specified capacity
-    ResizableArray(const OULinkedList<T>& linkedList);         // constructs array from OULinkedList
+    ResizableArray(const AVLTree<T>& avlTree,
+		AVLTreeEnumerator<T> enumerator);		        // constructs array from OULinkedList
     virtual ~ResizableArray();                          // frees array space as object is deleted
     void add(T item);                                   // adds item, increments size, doubles capacity as necessary
     
@@ -59,12 +61,11 @@ ResizableArray<T>::ResizableArray(unsigned long capacity)
 }
 
 template <typename T>
-ResizableArray<T>::ResizableArray(const OULinkedList<T>& linkedList) 
+ResizableArray<T>::ResizableArray(const AVLTree<T>& avlTree, AVLTreeEnumerator<T> enumerator)
 {
-	this->capacity = linkedList.getSize();
+	this->capacity = avlTree.getSize();
 	this->data = new T[capacity];
     if (data == nullptr) throw new ExceptionMemoryNotAvailable();
-    OULinkedListEnumerator<T> enumerator = linkedList.enumerator();
     while (enumerator.hasNext())
     {
         this->add(enumerator.next());

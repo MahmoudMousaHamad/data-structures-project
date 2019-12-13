@@ -6,7 +6,7 @@ unsigned long DrillingRecordHasher::hash(const DrillingRecord& item) const
 {
     unsigned long item_hash_value = 0;
     std::string timestamp = item.getString(1);
-    for (unsigned int i = 0; i < 8; ++i)
+    for (unsigned int i = 0; i < timestamp.length(); ++i)
     {
         item_hash_value += int(timestamp[i]);
     }

@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+
 #include "DrillingRecord.h"
 #include "ResizableArray.h"
 #include "Search.h"
@@ -30,7 +31,7 @@ const std::string DUPLICATE_TIMESTAMP = "DUPLICATE_TIMESTAMP";
 const std::string DUPLICATE_TIMESTAMP_DIFFERENT_FILE = "DUPLICATE_TIMESTAMP_DIFFERENT_FILE";
 const std::string INVALID_DATA = "INVALID_DATA";
 const std::string VALID_RECORD = "VALID_RECORD";
-const std::string MENU = "Enter (o)utput, (s)ort, (f)ind, (m)erge, (p)urge, (r)ecords, (h)ash table, or (q)uit: ";
+const std::string MENU = "Enter (o)utput, (s)ort, (f)ind, (m)erge, (p)urge, (h)ash table, (pre)order, (in)order, (post)order, or (q)uit: ";
 // Counters and flags
 unsigned long last_file_ending_index_in_array = 0; // Marks the end of the previous file in the array
 unsigned long line_counter = 0;
@@ -55,7 +56,7 @@ void sort();
 void find();
 void merge();
 void purge();
-std::string avlTree_to_string();
+std::string avlTree_to_string(AVLTreeOrder order);
 std::string hashtable_to_string();
 std::string counters_to_string();
 
@@ -68,20 +69,22 @@ int main()
     if (drillingAVLTree == nullptr) throw new ExceptionMemoryNotAvailable();
 	// Read first file
 	drillingAVLTree = read_file();
+	AVLTreeEnumerator<DrillingRecord> enumerator(drillingAVLTree);
+	// std::cout << avlTree_to_string(AVLTreeOrder::inorder);
 	// Make sure that we actually read something
 	if (drillingAVLTree->getSize() == 0) return 0;
 	// Create drilling resizable array
-	drillingArray = new ResizableArray<DrillingRecord>(*drillingAVLTree);
+	drillingArray = new ResizableArray<DrillingRecord>(*drillingAVLTree, enumerator);
     if (drillingArray == nullptr) throw new ExceptionMemoryNotAvailable();
 	// Create drilling HashTable and hasher in heap
 	hasher = new DrillingRecordHasher();
 	if (hasher == nullptr) throw new ExceptionMemoryNotAvailable();
-	drillingHashTable = new HashTable<DrillingRecord>(timestamp_comparator, hasher, drillingAVLTree->getSize());
+	drillingHashTable = new HashTable<DrillingRecord>(timestamp_comparator, hasher);
 	if (drillingHashTable == nullptr) throw new ExceptionMemoryNotAvailable();
-	AVLTreeEnumerator<DrillingRecord> enumerator(drillingAVLTree);
 	while (enumerator.hasNext())
 	{
-		drillingHashTable->insert(enumerator.next());
+		DrillingRecord record = enumerator.next();
+		drillingHashTable->insert(record);
 	}
 	// Show menu
 	user_option_loop();
@@ -104,8 +107,10 @@ void user_option_loop()
 		else if (userinput == "f") find();
 		else if (userinput == "m") merge();
 		else if (userinput == "p") purge();
-		else if (userinput == "r") output(userinput);
 		else if (userinput == "h") output(userinput);
+		else if (userinput == "in") output(userinput);
+		else if (userinput == "pre") output(userinput);
+		else if (userinput == "post") output(userinput);
 		else if (userinput == "q") { quit(); break; }
 	} while (true);
 }
@@ -114,8 +119,8 @@ void user_option_loop()
  * */
 void merge()
 {
-	AVLTree<DrillingRecord>* list_to_merege = read_file();
-	AVLTreeEnumerator<DrillingRecord> enumerator_to_merge = list_to_merege->enumerator();
+	AVLTree<DrillingRecord>* tree_to_merge = read_file();
+	AVLTreeEnumerator<DrillingRecord> enumerator_to_merge(tree_to_merge);
 	while (enumerator_to_merge.hasNext())
 	{
 		try
@@ -127,18 +132,18 @@ void merge()
 			print("No memory available");
 		}
 	}
-	drillingArray = new ResizableArray<DrillingRecord>(*drillingAVLTree);
+	AVLTreeEnumerator<DrillingRecord> enumerator(drillingAVLTree);
+	drillingArray = new ResizableArray<DrillingRecord>(*drillingAVLTree, enumerator);
     if (drillingArray == nullptr) throw new ExceptionMemoryNotAvailable();
 	drillingHashTable = new HashTable<DrillingRecord>(timestamp_comparator, hasher, drillingAVLTree->getSize());
 	if (drillingHashTable == nullptr) throw new ExceptionMemoryNotAvailable();
-	AVLTreeEnumerator<DrillingRecord> enumerator = drillingAVLTree->enumerator();
 	while (enumerator.hasNext())
 	{
 		drillingHashTable->insert(enumerator.next());
 	}
 	if (drillingHashTable == nullptr) throw new ExceptionMemoryNotAvailable();
-	delete list_to_merege;
-	list_to_merege = nullptr;
+	delete tree_to_merge;
+	tree_to_merge = nullptr;
 }
 /**
  * Reads file to purge.
@@ -149,13 +154,18 @@ void purge()
 	AVLTreeEnumerator<DrillingRecord> enumerator_to_purge = list_to_purge->enumerator();
 	while (enumerator_to_purge.hasNext())
 	{
-		drillingAVLTree->remove(enumerator_to_purge.next());
+		DrillingRecord record = enumerator_to_purge.next();
+		drillingAVLTree->remove(record);
 	}
-	drillingArray = new ResizableArray<DrillingRecord>(*drillingAVLTree);
+	if (drillingAVLTree->isEmpty())
+	{
+		drillingAVLTree = new AVLTree<DrillingRecord>(timestamp_comparator);
+	}
+	AVLTreeEnumerator<DrillingRecord> enumerator(drillingAVLTree);
+	drillingArray = new ResizableArray<DrillingRecord>(*drillingAVLTree, enumerator);
     if (drillingArray == nullptr) throw new ExceptionMemoryNotAvailable();
 	drillingHashTable = new HashTable<DrillingRecord>(timestamp_comparator, hasher, drillingAVLTree->getSize());
 	if (drillingHashTable == nullptr) throw new ExceptionMemoryNotAvailable();
-	AVLTreeEnumerator<DrillingRecord> enumerator = drillingAVLTree->enumerator();
 	while (enumerator.hasNext())
 	{
 		drillingHashTable->insert(enumerator.next());
@@ -193,9 +203,17 @@ void output(std::string option)
 	{
 		output_string = array_to_string();
 	}
-	else if (option == "r")
+	else if (option == "in")
 	{
-		output_string = avlTree_to_string();
+		output_string = avlTree_to_string(AVLTreeOrder::inorder);
+	}
+	else if (option == "pre")
+	{
+		output_string = avlTree_to_string(AVLTreeOrder::preorder);
+	}
+	else if (option == "post")
+	{
+		output_string = avlTree_to_string(AVLTreeOrder::postorder);
 	}
 	else if (option == "h")
 	{
@@ -384,7 +402,9 @@ std::string check_record(DrillingRecord record, AVLTree<DrillingRecord>& avlTree
 	if (avlTree.getSize() > 0)
 	{
 		// check date
-		if (avlTree.getFirst().getString(0) != record.getString(0))
+		AVLTreeEnumerator<DrillingRecord> enumerator = avlTree.enumerator();
+		DrillingRecord first_record = enumerator.next();
+		if (first_record.getString(0) != record.getString(0))
 		{
 			return INVALID_DATE;
 		}
@@ -395,22 +415,25 @@ std::string check_record(DrillingRecord record, AVLTree<DrillingRecord>& avlTree
 		print("Invalid floating-point data at line " + std::to_string(line_counter) + ".\n");
 		return INVALID_DATA;
 	}
-	// check timestamp
-	AVLTreeEnumerator<DrillingRecord> enumerator = avlTree.enumerator();
-	unsigned long counter = 0;
-	while (enumerator.hasNext())
+	if (avlTree.getSize() != 0)
 	{
-		if (enumerator.next().getString(1).compare(record.getString(1)) == 0)
+		// check timestamp
+		AVLTreeEnumerator<DrillingRecord> enumerator = avlTree.enumerator();
+		unsigned long counter = 0;
+		while (enumerator.hasNext())
 		{
-			if (counter < last_file_ending_index_in_array)
+			if (enumerator.next().getString(1).compare(record.getString(1)) == 0)
 			{
-				avlTree.replace(record);
-				break;
+				if (counter < last_file_ending_index_in_array)
+				{
+					avlTree.replace(record);
+					break;
+				}
+				print("Duplicate timestamp " + record.getString(1) + " at line " + std::to_string(line_counter) + ".\n");
+				return DUPLICATE_TIMESTAMP;
 			}
-			print("Duplicate timestamp " + record.getString(1) + " at line " + std::to_string(line_counter) + ".\n");
-			return DUPLICATE_TIMESTAMP;
+			counter++;
 		}
-		counter++;
 	}
 	valid_records++;
 	return VALID_RECORD;

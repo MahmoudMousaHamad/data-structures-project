@@ -42,9 +42,7 @@ public:
         unsigned long size,
         float maxLoadFactor = DEFAULT_MAX_LOAD_FACTOR,
         float minLoadFactor = DEFAULT_MIN_LOAD_FACTOR);
-    HashTable(OULinkedList<T>* linkedListToCopy, 
-        Hasher<T>* hasher,
-        Comparator<T>* comparator);    // converts a linkedlist to a hashtable
+
     virtual ~HashTable();
 
     // if an equivalent item is not already present, insert item at proper location and return true
@@ -115,37 +113,12 @@ HashTable<T>::HashTable(Comparator<T>* comparator, Hasher<T>* hasher,
     }
     this->baseCapacity = SCHEDULE[scheduleIndex];
     this->totalCapacity = baseCapacity;
-    table = new OULinkedList<T> *[this->baseCapacity];
+    table = new OULinkedList<T> *[baseCapacity];
     for (unsigned long i = 0; i < baseCapacity; ++i)
     {
-        table[i] = nullptr;
+		table[i] = nullptr;
     }
     if (table == nullptr) throw new ExceptionMemoryNotAvailable();
-}
-
-template <typename T>
-HashTable<T>::HashTable(OULinkedList<T>* linkedListToCopy, Hasher<T>* hasher, Comparator<T>* comparator)
-{
-    this->comparator = comparator;
-    this->hasher = hasher;
-    this->baseCapacity = linkedListToCopy->getSize();
-    totalCapacity = baseCapacity;
-    size = baseCapacity;
-    // Delete previous data
-    for (unsigned long i = 0; i < baseCapacity; ++i)
-    {
-        delete table[i]; table[i] = nullptr;
-    }
-    delete[] table; table = nullptr;
-    // create new table
-    table = new OULinkedList<T> *[this->baseCapacity];
-    if (table == nullptr) throw new ExceptionMemoryNotAvailable();
-    OULinkedListEnumerator<T> enumerator = linkedListToCopy->enumerator();
-    while (enumerator.hasNext())
-    {
-        T item = enumerator.next();
-        table[getBucketNumber(item)]->insert(item);
-    }
 }
 
 template <typename T>
@@ -163,11 +136,11 @@ bool HashTable<T>::insert(T item)
 {
     bool insert_successful = false;
     unsigned long bucket_number = this->getBucketNumber(item); 
-    if (table[bucket_number] == nullptr)
+	OULinkedList<T>* temp_linked_list = table[bucket_number];
+    if (temp_linked_list == nullptr)
     {
         table[bucket_number] = new OULinkedList<T>(this->comparator);
     }
-    // error on the line right below
     insert_successful = table[bucket_number]->insert(item);
     if (insert_successful)
     {
@@ -288,13 +261,23 @@ void HashTable<T>::resizeTable(std::string option)
     baseCapacity = SCHEDULE[scheduleIndex];
     totalCapacity = baseCapacity;
     OULinkedList<T>** tempTable = new OULinkedList<T> *[baseCapacity];
+	for (unsigned int i = 0; i < baseCapacity; ++i)
+	{
+		tempTable[i] = nullptr;
+	}
     for (unsigned int i = 0; i < size; ++i)
     {
         OULinkedList<T>* tempLinkedList = table[i];
-        if (tempLinkedList->getSize() == 0) continue;
+		if (tempLinkedList == nullptr) continue;
+        else if (tempLinkedList->getSize() == 0) continue;
         else if (tempLinkedList->getSize() == 1)
         {
             T item = tempLinkedList->getFirst();
+			tempTable[getBucketNumber(item)] = nullptr;
+			if (tempTable[getBucketNumber(item)] == nullptr)
+			{
+				tempTable[getBucketNumber(item)] = new OULinkedList<T>(this->comparator);
+			}
             tempTable[getBucketNumber(item)]->insert(item);
             ++totalCapacity;
         }
@@ -304,14 +287,15 @@ void HashTable<T>::resizeTable(std::string option)
             while (enumerator.hasNext())
             {
                 T item = enumerator.next();
-                tempTable[getBucketNumber(item)]->insert(item);
+				tempTable[getBucketNumber(item)] = nullptr;
+				if (tempTable[getBucketNumber(item)] == nullptr)
+				{
+					tempTable[getBucketNumber(item)] = new OULinkedList<T>(this->comparator);
+				}
+				tempTable[getBucketNumber(item)]->insert(item);
                 ++totalCapacity;
             }
         }
-    }
-    for (unsigned long i = 0; i < baseCapacity; ++i)
-    {
-        delete table[i]; table[i] = nullptr;
     }
     delete[] table; table = nullptr;
     table = tempTable;

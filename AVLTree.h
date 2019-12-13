@@ -1,4 +1,4 @@
-#ifndef AVL_TREE
+﻿#ifndef AVL_TREE
 #define AVL_TREE
 
 #include "Comparator.h"
@@ -21,6 +21,8 @@ private:
     void zigzag();                                  // left rotation on left subtree, followed by right rotation
     void zagzig();                                  // right rotation on right subtree, followed by left rotation
     void rebalance();                               // check for and rebalance this node, if needed
+	bool _insert(AVLTree<T>* node, const T item);
+	bool _remove(const T item);
 public:
     AVLTree(Comparator<T>* comparator);             // creates empty linked tree with comparator
     virtual ~AVLTree();                             // deletes subtrees
@@ -47,6 +49,8 @@ public:
 
     unsigned long getSize() const;                  // returns the current number of items in the tree
 
+	bool isEmpty() const;
+
     AVLTreeEnumerator<T> enumerator(AVLTreeOrder order = AVLTreeOrder::inorder) const;    // create an enumerator for this AVL tree
 };
 
@@ -61,7 +65,7 @@ AVLTree<T>::AVLTree(Comparator<T>* comparator)
 template <typename T>
 AVLTree<T>::~AVLTree()
 {
-    delete comparator; comparator = nullptr;
+    // delete comparator; comparator = nullptr;
     if (left != nullptr)
     {
         delete left;
@@ -74,55 +78,70 @@ AVLTree<T>::~AVLTree()
 }
 
 template <typename T>
+bool AVLTree<T>::_insert(AVLTree<T>* node, const T item)
+{
+	bool insert_successful = false;
+	long result = comparator->compare(item, data);
+	int old_diff = 0;
+	if (result < 0)
+	{
+		if (left == nullptr)
+		{
+			left = new AVLTree<T>(comparator);
+			left->data = item;
+			left->empty = false;
+			left->diff = 0;
+			diff--;
+			node->size++;
+			insert_successful = true;
+		}
+		else
+		{
+			old_diff = left->diff;
+			insert_successful = left->_insert(node, item);
+			if (old_diff != left->diff && left->diff != 0)
+			{
+				diff--;
+			}
+		}
+	}
+	else if (result > 0)
+	{
+		if (right == nullptr)
+		{
+			right = new AVLTree<T>(comparator);
+			right->data = item;
+			right->empty = false;
+			right->diff = 0;
+			diff++;
+			node->size++;
+			insert_successful = true;
+		}
+		else
+		{
+			old_diff = right->diff;
+			insert_successful = right->_insert(node, item);
+			if (old_diff != right->diff && right->diff != 0)
+			{
+				diff++;
+			}
+		}
+	}
+	if (insert_successful) this->rebalance();
+	return insert_successful;
+}
+
+template <typename T>
 bool AVLTree<T>::insert(const T item)
 {
-    if (empty)
-    {
-        data = item;
-        empty = false;
-    }
-    long result = comparator->compare(item, data);
-    int old_diff = 0;
-    if (result < 0)
-    {
-        if (left == nullptr)
-        {
-            left = new AVLTree<T>(comparator);
-            left->data = item;
-            size++;
-            return true;
-        }
-        else
-        {
-            old_diff = left->diff;
-            left->insert(item);
-            if (old_diff != left->diff && left->diff != 0)
-            {
-                diff--;
-            }
-        }
-    }
-    else if (result > 0)
-    {
-        if (right == nullptr)
-        {
-            right = new AVLTree<T>(comparator);
-            right->data = item;
-            size++;
-            return true;
-        }
-        else
-        {
-            old_diff = right->diff;
-            right->insert(item);
-            if (old_diff != right->diff && right->diff != 0)
-            {
-                diff++;
-            }
-        }
-    }
-    rebalance();
-    return false;
+	if (empty)
+	{
+		data = item;
+		empty = false;
+		size++;
+		return true;
+	}
+	return _insert(this, item);
 }
 
 template <typename T>
@@ -159,112 +178,328 @@ bool AVLTree<T>::replace(const T item)
     return true;
 }
 
+
 // Check this
 template <typename T>
-bool AVLTree<T>::remove(const T item)
+bool AVLTree<T>::_remove(const T item)
 {
     if (empty)
     {
         return false;
     }
-
     long result = comparator->compare(item, data);
     int old_diff = 0;
+	// go left
     if (result < 0)
     {
-        if (left == nullptr)
+        if (left == nullptr || left->empty)
         {
-            return false;
+			return false;
         }
         else
         {
             old_diff = left->diff;
-            left->remove(item);
-            if (old_diff != left->diff && left->diff != 0)
-            {
-                diff++;
-            }
+			if (left->_remove(item))
+			{
+				if (old_diff != left->diff && left->diff != 0)
+				{
+					diff++;
+				}
+				if (left->empty)
+				{
+					delete left;
+					left = nullptr;
+				}
+			}
         }
     }
+	// go right
     else if (result > 0)
     {
-        if (right == nullptr)
+        if (right == nullptr || right->empty)
         {
-            return false;
+			return false;
         }
         else
         {
             old_diff = right->diff;
-            right->remove(item);
-            if (old_diff != right->diff && right->diff != 0)
-            {
-                diff--;
-            }
+			if (right->_remove(item))
+			{
+				if (old_diff != right->diff && right->diff != 0)
+				{
+					diff--;
+				}
+				if (right->empty)
+				{
+					delete right;
+					right = nullptr;
+				}
+			}
         }
     }
-    // Leaf node
-    if (right == nullptr && left == nullptr)
-    {
-        delete this;
-        this = nullptr;
-    }
-    // Has left node only, replace it with this
-    else if (right == nullptr && left != nullptr)
-    {
-        data = left->data;
-        left = left->left;
-        right = left->right;
-        delete left;
-        diff++;
-    }
-    // Has right node
-    else if (right != nullptr)
-    {
-        // Right is leaf node
-        if (right->right == nullptr && right->left == nullptr)
-        {
-            data = right->data;
-            delete right;
-            right = nullptr;
-            diff--;
-        }
-        // Right only has right subtree
-        else if (right->right != nullptr && right->left == nullptr)
-        {
-            data = right->data;
-            right = right->right;
-            delete right;
-            diff--;
-        }
-        // Right subtree has left subtree
-        else
-        {
-            AVLTree<T>* temp = right;
-            // Get leftmost leaf node
-            while (temp->left != nullptr)
-            {
-                if (temp->left->left == nullptr)
-                {
-                    temp = temp->left;
-                    temp->left = nullptr;
-                    break;
-                }
-                temp = temp->left;
-                temp->diff++;
-            }
-            if (right->left == nullptr)
-            {
-                right = nullptr;
-                diff--;
-            }
-            data = temp->data;
-            delete temp;
-            temp = nullptr;
-        }
-    }
-    size--;
+	else
+	{
+		// one or no child
+		if (right == nullptr)
+		{
+			if (left != nullptr)
+			{
+				data = left->data;
+				delete left;
+				left = nullptr;
+			}
+			else
+			{
+				this->empty = true;
+			}
+
+		}
+		else if (left == nullptr)
+		{
+			if (right != nullptr)
+			{
+				data = right->data;
+				delete right;
+				right = nullptr;
+			}
+			else
+			{
+				this->empty = true;
+			}
+		}
+		else
+		{
+			// find inorder successor
+			AVLTree<T>* successor = right;
+			while (successor->left != nullptr)
+			{
+				successor = successor->left;
+			}
+			data = successor->data;
+			old_diff = right->diff;
+			right->_remove(successor->data);
+			if (right->empty || (right->diff != old_diff && right->diff == 0))
+			{
+				diff--;
+			}
+		}
+	}
+
+	rebalance();
     return true;
 }
+
+template<typename T>
+bool AVLTree<T>::remove(const T item)
+{
+	if (empty)
+	{
+		return false;
+	}
+	int result = comparator->compare(this->data, item);
+	if (result == 0)
+	{
+		if ((left == nullptr || left->empty) && (right == nullptr || right->empty))
+		{
+			empty = true;
+		}
+		else if ((left == nullptr || left->empty) && (right != nullptr && !right->empty))
+		{
+			data = right->data;
+			delete right;
+			right = nullptr;
+			diff--;
+		}
+		else if ((right == nullptr || right->empty) && (left != nullptr && !left->empty))
+		{
+			data = left->data;
+			delete left;
+			left = nullptr;
+			diff++;
+		}
+		else //if ((right == nullptr || right->empty) && (left == nullptr && left->empty))
+		{
+			AVLTree<T>* farthestLeft = right;
+			int oldRightDiff = right->diff;
+			while (farthestLeft->left != nullptr)
+			{
+				farthestLeft = farthestLeft->left;
+			}
+			data = farthestLeft->data;
+			right->remove(farthestLeft->data);
+			if (oldRightDiff != right->diff && right->diff == 0)
+			{
+				diff--;
+			}
+
+		}
+
+	}
+	if (comparator->compare(this->data, item) > 0)
+	{
+		if (left == nullptr)
+		{
+			return false;
+		}
+		else
+		{
+			int oldLeftDiff = left->diff;
+			if (left->remove(item))
+			{
+				if (oldLeftDiff != left->diff && left->diff == 0)
+				{
+					diff++;
+				}
+				// if left child is empty, delete it
+				if (left->empty)
+				{
+					delete left;
+					left = nullptr;
+				}
+			}
+		}
+	}
+	if (comparator->compare(this->data, item) < 0)
+	{
+		if (right == nullptr)
+		{
+			return false;
+		}
+		else
+		{
+			int oldRightDiff = right->diff;
+			if (right->remove(item))
+			{
+				if (oldRightDiff != right->diff && right->diff == 0)
+				{
+					diff--;
+				}
+				// if left child is empty, delete it
+				if (right->empty)
+				{
+					delete right;
+					right = nullptr;
+				}
+			}
+		}
+	}
+
+	rebalance();
+	size--;
+	return true;
+}
+/*
+template <typename T>
+bool AVLTree<T>::remove(const T item)
+{
+	if (empty)
+	{
+		return false;
+	}
+	long result = comparator->compare(item, data);
+	int old_diff = 0;
+	// go left
+	if (result < 0)
+	{
+		if (left == nullptr || left->empty)
+		{
+			return false;
+		}
+		else
+		{
+			old_diff = left->diff;
+			if (left->_remove(item))
+			{
+				if (old_diff != left->diff && left->diff != 0)
+				{
+					diff++;
+				}
+				if (left->empty)
+				{
+					delete left;
+					left = nullptr;
+				}
+			}
+		}
+	}
+	// go right
+	else if (result > 0)
+	{
+		if (right == nullptr || right->empty)
+		{
+			return false;
+		}
+		else
+		{
+			old_diff = right->diff;
+			if (right->_remove(item))
+			{
+				if (old_diff != right->diff && right->diff != 0)
+				{
+					diff--;
+				}
+				if (right->empty)
+				{
+					delete right;
+					right = nullptr;
+				}
+			}
+		}
+	}
+	else
+	{
+		// one or no child
+		if (right == nullptr)
+		{
+			if (left != nullptr)
+			{
+				data = left->data;
+				delete left;
+				left = nullptr;
+				diff++;
+			}
+			else
+			{
+				this->empty = true;
+			}
+		}
+		else if (left == nullptr)
+		{
+			if (right != nullptr)
+			{
+				data = right->data;
+				delete right;
+				right = nullptr;
+				diff--;
+			}
+			else
+			{
+				this->empty = true;
+			}
+		}
+		else
+		{
+			// find inorder successor
+			AVLTree<T>* successor = right;
+			while (successor->left != nullptr)
+			{
+				successor = successor->left;
+			}
+			data = successor->data;
+			old_diff = right->diff;
+			right->_remove(successor->data);
+			if (right->diff != old_diff && right->diff != 0)
+			{
+				diff--;
+			}
+		}
+	}
+
+	size--;
+	rebalance();
+	return true;
+}
+*/
 
 template <typename T>
 bool AVLTree<T>::contains(T item) const
@@ -343,31 +578,42 @@ unsigned long AVLTree<T>::getSize() const
 template <typename T>
 AVLTreeEnumerator<T> AVLTree<T>::enumerator(AVLTreeOrder order) const
 {
-    return AVLTreeEnumerator<T>(this, order);
+    AVLTreeEnumerator<T> enumerator(this, order);
+	return enumerator;
+}
+
+template <typename T>
+bool AVLTree<T>::isEmpty() const
+{
+	return this->empty;
 }
 
 template <typename T>
 void AVLTree<T>::rebalance()
 {
-    if (diff > -2 && diff < 2)
+	if (left == nullptr && right == nullptr)
+	{
+		return;
+	}
+    if (diff >= -1 && diff <= 1)
     {
         return;
     }
-    else if (diff < 0 && left->diff < 0) // left-left
+    else if (diff < 0 && left->diff <= 0) // left-left
     {
-        zag();
+        zig();
     }
     else if (diff < 0 && left->diff > 0) // left-right
     {
         zigzag();
     }
-    else if (diff > 0 && right->diff < 0) // right-left
+    else if (diff > 0 && right->diff <= 0) // right-left
     {
-        zagzig();
+        this->zagzig();
     }
-    else if (diff > 0 && right->diff > 0) // right-right
+    else if (diff > 0 && right->diff >= 0) // right-right
     {
-        zag();
+        this->zag();
     }
 }
 
@@ -383,19 +629,20 @@ void AVLTree<T>::zig()
 	int pdiff = left->diff;
 
 	AVLTree<T>* left_temp = left;
-	left = right_temp->right;
+	left = left_temp->left;
 	left_temp->left = left_temp->right;
 	left_temp->right = right;
+	right = left_temp;
 
 	// Swap data
-	T temp_data = left->data;
-	left->data = data;
-	data = temp_data;
+	T temp_data = data;
+	data = left_temp->data;
+	left_temp->data = temp_data;
 
 	if (pdiff < 0) 
 	{ 
-		right->diff = gdiff - pdiff + 1;
-		diff = gdiff + 2; 
+		diff = gdiff + 2;
+		right->diff = (gdiff - pdiff) + 1;
 	}
 	else 
 	{ 
@@ -407,37 +654,34 @@ void AVLTree<T>::zig()
 template <typename T>
 void AVLTree<T>::zag()
 {
-	if (empty)
-	{
-		return;
-	}
-    if (right == nullptr)
+    if (this->right == nullptr)
     {
         return;
-    }
+	}
 
 	int gdiff = diff;
 	int pdiff = right->diff;
 
     AVLTree<T>* right_temp = right;
-    right = right_temp->left;
+    right = right_temp->right;
     right_temp->right = right_temp->left;
 	right_temp->left = left;
+	left = right_temp;
 
 	// Swap data
-	T temp_data = right->data;
-	right->data = data;
-	data = temp_data;
+	T temp_data = data;
+	data = right_temp->data;
+	right_temp->data = temp_data;
 
-	if (pdiff < 0)
+	if (pdiff > 0)
 	{
-		left->diff = gdiff - pdiff + 1;
-		diff = gdiff + 2;
+		diff = gdiff - 2;
+		left->diff = (gdiff - pdiff) - 1;
 	}
 	else
 	{
-		diff = 1 + pdiff;
-		left->diff = 1 + gdiff;
+		diff = pdiff - 1;
+		left->diff = gdiff - 1;
 	}
 }
 
@@ -452,7 +696,7 @@ template <typename T>
 void AVLTree<T>::zagzig()
 {
     right->zig();
-    zag;
+    zag();
 }
 
 #endif // !AVL_TREE

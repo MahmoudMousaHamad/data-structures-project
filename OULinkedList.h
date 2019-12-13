@@ -70,6 +70,7 @@ template <typename T>
 OULinkedList<T>::OULinkedList(Comparator<T>* comparator)
 {
     this->comparator = comparator;
+	this->size = 0;
 }
 
 template <typename T>
@@ -341,7 +342,7 @@ void OULinkedList<T>::clear()
 template <typename T>
 unsigned long OULinkedList<T>::getSize() const
 {
-    return this->size;
+    return size;
 }
 
 template <typename T>
